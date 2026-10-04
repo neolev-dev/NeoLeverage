@@ -5,6 +5,7 @@ const mediaHost = process.env.MEDIA_HOST || "pub-dbe0635cce4240dda8b7b3874f631e3
 export default defineConfig({
   site: "https://neolev.jp",
   output: "static",
+  devToolbar: { enabled: false },
   trailingSlash: "ignore",
   build: {
     format: "directory",
