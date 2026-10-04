@@ -79,21 +79,23 @@ float inHead(vec2 uv){
 vec3 skyColor(vec3 rd, vec2 uv){
   vec3 sun=sunDir();
   float elev=clamp(rd.y/.42,0.,1.);
-  vec3 zen=lin(vec3(140.,203.,245.)/255.);
-  vec3 midc=lin(vec3(191.,227.,251.)/255.);
+  vec3 zen=lin(vec3(186.,220.,246.)/255.);
+  vec3 midc=lin(vec3(214.,236.,252.)/255.);
   vec3 hor=lin(vec3(234.,246.,254.)/255.);
-  vec3 warm=lin(vec3(255.,246.,222.)/255.);
-  vec3 sky=mix(hor,midc,smoothstep(0.,.08,elev));
-  sky=mix(sky,zen,smoothstep(.18,.85,elev));
-  float mu=dot(rd,sun);
-  sky=mix(sky,warm,pow(max(mu,0.),36.)*.42);
-  sky=mix(sky,warm,smoothstep(.9988,.9997,mu));
-  float band=inHead(uv);
+  vec3 sky=mix(hor,midc,smoothstep(0.,.22,elev));
+  sky=mix(sky,zen,smoothstep(.2,.9,elev));
+  float mu=max(dot(rd,sun),0.);
+  sky+=vec3(1.)*pow(mu,80.)*.35;
+  sky=mix(sky,vec3(1.),smoothstep(.9988,.9996,mu));
+  float band=0.;
+  if(uHead.z>.01){
+    vec2 pad=72./max(uRes,vec2(1.));
+    vec2 q=abs(uv-(uHead.xy+uHead.zw*.5))/(uHead.zw*.5+pad);
+    band=1.-smoothstep(.72,1.2,max(q.x,q.y));
+  }
   float cirrus=smoothstep(.62,.9,noise(vec2(rd.x*9.-uTime*.04,rd.y*28.)));
   cirrus*=smoothstep(.08,.2,rd.y)*smoothstep(.72,.4,rd.y)*(1.-band);
   sky=mix(sky,min(sky+vec3(.08,.09,.1),vec3(1.)),cirrus*.12);
-  vec3 pale=lin(vec3(228.,244.,254.)/255.);
-  sky=mix(sky,pale,band);
   return sky;
 }
 vec3 ray(vec2 frag){
@@ -126,7 +128,7 @@ void main(){
       float alive=(fi<4.||uHi>.5)?1.:0.;
       float L=40.*pow(.15,fi/5.);
       float k=6.2831853/L;
-      float A=L*mix(.01,.016,fi/5.)*alive;
+      float A=L*mix(.016,.03,fi/5.)*alive;
       float Q=mix(.2,.35,fi/5.);
       float ang=atan(.1,1.)+(fi-2.5)*.209;
       vec2 D=vec2(cos(ang),sin(ang));
@@ -139,7 +141,7 @@ void main(){
       n.y-=Q*A*k*s*vis;
     }
     float detail=smoothstep(2.2,.4,fw);
-    float rip=mix(.004,.02,clamp(uWind,0.,1.4))*detail*shore;
+    float rip=mix(.035,.08,clamp(uWind,0.,1.4))*detail*shore;
     vec2 rp=xz*.28+vec2(uTime*mix(.2,.9,clamp(uWind,0.,1.)),0.);
     float e=.22;
     float h0=fbm(rp);
@@ -157,26 +159,36 @@ void main(){
     vec3 transmit=lin(vec3(94.,214.,214.)/255.);
     col=mix(nearC,midC,smoothstep(0.,.4,depth));
     col=mix(col,farC,smoothstep(.3,1.,depth));
-    col=mix(transmit,col,.62);
-    float crest=smoothstep(0.,.1,y)*smoothstep(.25,.8,dot(n,sun));
-    col=mix(col,transmit,crest*.25);
-    col=mix(col,refl,fres);
+    col=mix(transmit,col,.55);
+    float wrap=clamp(dot(n,sun)*.55+.45,0.,1.);
+    col*=mix(.5,1.4,wrap);
+    float crest=smoothstep(0.,.08,y)*smoothstep(.2,.75,dot(n,sun));
+    col=mix(col,min(transmit*1.35,vec3(1.)),crest*.45);
+    float down=clamp(-rd.y/.22,0.,1.);
+    float fresMix=min(fres,mix(.55,.1,down));
+    col=mix(col,refl,fresMix);
+    float luma=dot(max(col,0.),vec3(.2126,.7152,.0722));
+    vec3 ink=lin(vec3(16.,124.,178.)/255.);
+    float inkL=max(dot(ink,vec3(.2126,.7152,.0722)),.0008);
+    float dye=smoothstep(.001,.09,-rd.y);
+    col=mix(col,ink*clamp(luma/inkL,.4,1.55),dye*.92);
     float paw=smoothstep(.55,.82,noise(xz*.045-vec2(uWindFront*18.,0.)))*detail;
     float rough=mix(.06,.14,paw);
     float a2=rough*rough;
     vec3 H=normalize(V+sun);
     float ndh=max(dot(n,H),0.);
     float D=a2/(3.14159*pow(ndh*ndh*(a2-1.)+1.,2.));
-    col+=vec3(1.)*D*fres*clamp(dot(n,sun),0.,1.)*detail*.9;
-    float sunBand=smoothstep(.16,.02,abs(uv.x-uSunX))*(1.-inHead(uv));
-    float glint=smoothstep(.72,.94,noise(xz*mix(8.,16.,uGlitter)+vec2(uTime*.4,0.)))*detail;
-    col+=lin(vec3(255.,243.,209.)/255.)*glint*sunBand*uGlitter*clamp(uWind,.2,1.3)*.7;
+    col+=vec3(1.)*D*fres*clamp(dot(n,sun),0.,1.)*detail*1.35;
+    float sunBand=smoothstep(.22,.0,abs(uv.x-uSunX))*(1.-inHead(uv));
+    float glint=smoothstep(.62,.9,noise(xz*mix(10.,22.,uGlitter)+vec2(uTime*.5,0.)))*detail;
+    col+=vec3(1.)*glint*sunBand*uGlitter*clamp(uWind,.2,1.3)*1.15;
+    col+=vec3(1.)*exp(-abs(uv.x-uSunX)*14.)*shore*sunBand*.28;
     float zone=smoothstep(.22,.04,frag.y/uRes.y);
     float caus=uCaustic<.01?1.:uCaustic;
     float cells=pow(1.-vor(xz*.42+vec2(uTime*.08,0.)),3.);
     col+=transmit*cells*zone*caus*.18*shore;
     float lanes=smoothstep(.4,.78,noise(vec2(xz.y*3.2,xz.x*.03-uTime*1.1)));
-    col+=vec3(1.)*lanes*shore*clamp(uWind,0.,1.4)*.08*(1.-inHead(uv));
+    col+=vec3(1.)*lanes*shore*clamp(uWind,0.,1.4)*.22*(1.-inHead(uv));
     vec2 top=uv;
     vec2 ship=uShip.xy;
     vec2 wh=max(uShip.zw,vec2(.001));
@@ -194,7 +206,7 @@ void main(){
       float kel=smoothstep(mix(2.2,.4,clamp(uConverge,0.,1.)),.12,abs(abs(ang)-19.));
       float foam=noise(vec2(behind*26.,rel.y*20.)+uTime*.35);
       float life=exp(-behind*mix(8.,3.2,clamp(uWake,0.,1.)));
-      col+=vec3(1.)*kel*life*smoothstep(.35,.8,foam)*uWake*.85;
+      col+=vec3(1.)*kel*life*smoothstep(.28,.75,foam)*uWake*1.35;
     }
     if(uTap.z>0.){
       float age=max(uTime-uTap.z,0.);
@@ -206,13 +218,6 @@ void main(){
   float expo=uExposure<.01?.4:uExposure;
   col=neutral(max(col,0.)*exp2(expo));
   col=enc(col);
-  float hx=1.-smoothstep(.52,.70,uv.x);
-  float hy=smoothstep(.04,.10,uv.y)*(1.-smoothstep(.52,.64,uv.y));
-  col=mix(col,vec3(234.,246.,254.)/255.,hx*hy);
-  float waterMask=smoothstep(.66,.72,uv.y);
-  float fore=smoothstep(.70,.90,uv.y);
-  vec3 graded=mix(vec3(140.,205.,235.)/255.,vec3(30.,156.,203.)/255.,fore);
-  col=mix(col,graded,waterMask);
   vec3 floorC=vec3(15.,90.,122.)/255.;
   float ls=dot(col,vec3(.2126,.7152,.0722));
   float lf=dot(floorC,vec3(.2126,.7152,.0722));

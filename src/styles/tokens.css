@@ -11,7 +11,7 @@
   --nl-color-error: #b3261e;
   --nl-color-sky-0: #eaf6fe;
   --nl-color-sky-1: #bfe3fb;
-  --nl-font-en: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --nl-font-en: "Outfit", "Outfit Fallback", "Avenir Next", "Segoe UI", sans-serif;
   --nl-font-ja: "Outfit Latin", "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
   --nl-font-mono: "Fragment Mono", ui-monospace, monospace;
   --nl-ease-out: cubic-bezier(0.22, 1, 0.36, 1);

@@ -1,8 +1,4 @@
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BODY from "./mv-water.glsl?raw";
-
-gsap.registerPlugin(ScrollTrigger);
 
 type Tier = "0" | "1" | "2" | "3";
 type GL = WebGL2RenderingContext | WebGLRenderingContext;
@@ -45,7 +41,9 @@ function software(gl: GL): boolean {
   return /swiftshader|llvmpipe|softpipe|software/i.test(name);
 }
 
-export function bootMv(root: HTMLElement): void {
+export async function bootMv(root: HTMLElement): Promise<void> {
+  const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+  gsap.registerPlugin(ScrollTrigger);
   const query = new URLSearchParams(location.search);
   const asked = query.get("tier");
   const forced = asked === "0" || asked === "1" || asked === "2" || asked === "3";
@@ -56,17 +54,81 @@ export function bootMv(root: HTMLElement): void {
   const copy = root.querySelector<HTMLElement>("[data-copy]");
   const spray = root.querySelector<HTMLElement>("[data-spray]");
   const gulls = [...root.querySelectorAll<HTMLElement>(".gull")];
-  const mainSail = root.querySelector<SVGPathElement>("[data-sail='main']");
-  const jib = root.querySelector<SVGPathElement>("[data-sail='jib']");
   const divider = root.querySelector<HTMLElement>("[data-divider]");
   const lines = [...root.querySelectorAll<HTMLElement>(".wind-line")];
   const sp = () => window.matchMedia("(max-width: 800px)").matches;
 
+  const placeScene = () => {
+    if (!copy) return;
+    const host = root.getBoundingClientRect();
+    const box = copy.getBoundingClientRect();
+    const narrow = host.width <= 800;
+    if (narrow && boat) {
+      boat.style.top = `${box.bottom - host.top + 20}px`;
+      boat.style.left = host.width <= 430 ? "60%" : "68%";
+      boat.style.width = host.width <= 430 ? "54vw" : "";
+    }
+    const pad = 48;
+    const forbid = {
+      l: box.left - host.left - pad,
+      t: box.top - host.top - pad,
+      r: box.right - host.left + pad,
+      b: box.bottom - host.top + pad,
+    };
+    const hits = (x: number, y: number, w: number, h: number) =>
+      x < forbid.r && x + w > forbid.l && y < forbid.b && y + h > forbid.t;
+    root.querySelectorAll<HTMLElement>(".wind-line.in-sky").forEach((line, index) => {
+      if (getComputedStyle(line).display === "none") return;
+      const w = Math.min(host.width * 0.11, 160);
+      const h = 3;
+      let x = forbid.r + 16 + index * 12;
+      const y = Math.max(72, box.top - host.top + 10 + index * Math.max(26, host.height * 0.055));
+      if (x + w > host.width - 8) x = Math.max(8, host.width - w - 8);
+      if (hits(x, y, w, h)) {
+        line.style.visibility = "hidden";
+        return;
+      }
+      line.style.visibility = "visible";
+      line.style.left = `${x}px`;
+      line.style.top = `${y}px`;
+      line.style.width = `${w}px`;
+    });
+    gulls.forEach((gull, index) => {
+      if (getComputedStyle(gull).display === "none") return;
+      const w = gull.getBoundingClientRect().width || 22;
+      const h = 14;
+      let x = narrow ? host.width - 14 - w - index * 28 : host.width * (0.7 + index * 0.07);
+      let y = narrow ? box.top - host.top + 6 + index * 26 : host.height * (index === 1 ? 0.22 : 0.16);
+      if (hits(x, y, w, h)) {
+        x = Math.min(host.width - w - 8, Math.max(8, forbid.r + 8));
+        y = narrow ? box.top - host.top + 6 + index * 26 : y;
+      }
+      if (hits(x, y, w, h)) {
+        x = Math.min(host.width - w - 8, host.width - 14 - w - (index % 2) * 32);
+        y = forbid.b + 16 + index * 22;
+      }
+      if (hits(x, y, w, h) || x < 4 || y < 4 || x + w > host.width - 2 || y + h > host.height - 2) {
+        gull.style.visibility = "hidden";
+        return;
+      }
+      gull.style.visibility = "visible";
+      gull.style.left = `${x}px`;
+      gull.style.right = "auto";
+      gull.style.top = `${y}px`;
+      gull.style.bottom = "auto";
+    });
+  };
+
   if (tier === "0") {
-    if (mainSail?.dataset.full) mainSail.setAttribute("d", mainSail.dataset.full);
-    if (jib?.dataset.full) jib.setAttribute("d", jib.dataset.full);
+    root.querySelectorAll<SVGPathElement>("[data-full]").forEach((path) => {
+      if (path.dataset.full) path.setAttribute("d", path.dataset.full);
+    });
     boat?.classList.add("is-full");
     divider?.classList.add("is-drawn");
+    root.classList.add("is-settled");
+    placeScene();
+    document.fonts?.ready.then(placeScene).catch(() => undefined);
+    window.addEventListener("resize", placeScene);
     return;
   }
 
@@ -75,22 +137,25 @@ export function bootMv(root: HTMLElement): void {
   let raf = 0;
   let frame = (_now: number) => {};
   const live = () => !clock.hidden && !clock.away;
-  const tweens: gsap.core.Animation[] = [];
+  const tweens: Array<{ paused: (value?: boolean) => void }> = [];
 
   const pose = () => {
     if (!boat) return;
     const damp = clock.intro < 4.2 ? 1 : clock.intro >= 5 ? 0 : 1 - (clock.intro - 4.2) / 0.8;
     const wave = heave(Math.min(clock.intro, 4.2));
     const heel = motion.sail * 8 + wave.pitch * damp;
-    boat.style.left = sp() ? "58%" : "64%";
+    if (!sp()) boat.style.left = "72%";
     boat.style.transform = `translate3d(-50%, ${wave.y * damp}px, 0) rotate(${heel}deg)`;
-    if (spray) spray.style.opacity = String(0.15 + motion.sail * 0.85);
+    if (spray) spray.style.opacity = String(0.2 + motion.sail * 0.75);
     const drift = motion.surge * -6 - Math.min(motion.scroll, 0.75) * 10;
     if (fleet) fleet.style.transform = `translateX(${drift}vw)`;
-    const pass = motion.surge * 10 + (motion.scroll < 0.4 ? (motion.scroll / 0.4) * 18 : motion.scroll > 0 ? 18 : 0);
+    const pass = motion.surge * 8 + (motion.scroll < 0.4 ? (motion.scroll / 0.4) * 12 : motion.scroll > 0 ? 12 : 0);
+    const travel = sp() ? 0 : pass;
     gulls.forEach((gull, index) => {
-      gull.style.transform = `translateX(${pass + index * 2}vw)`;
+      gull.style.transform = `translate3d(${travel + (sp() ? 0 : index * 2)}vw, 0, 0)`;
     });
+    if (clock.intro >= 5) root.classList.add("is-settled");
+    placeScene();
   };
 
   const kick = () => {
@@ -108,10 +173,10 @@ export function bootMv(root: HTMLElement): void {
       if (!path || !target) return;
       tweens.push(gsap.to(path, { morphSVG: target, duration: 0.6, delay: at, ease: lever }));
     };
-    morph(mainSail, "half", 2.4);
-    morph(mainSail, "full", 3.0);
-    morph(jib, "half", 2.4);
-    morph(jib, "full", 3.0);
+    root.querySelectorAll<SVGPathElement>("[data-full]").forEach((path) => {
+      morph(path, "half", 2.4);
+      morph(path, "full", 3.0);
+    });
     tweens.push(
       gsap.to(motion, { front: 1, duration: 1.2, delay: 1.2, ease: "power1.inOut" }),
       gsap.to(motion, { wind: 1, duration: 1.2, delay: 1.2, ease: "power1.inOut" }),
@@ -121,12 +186,13 @@ export function bootMv(root: HTMLElement): void {
     );
     lines.forEach((line, index) => {
       const far = line.classList.contains("far") ? 0.45 : 0;
-      const opacity = line.classList.contains("is-hot") ? 0.6 : 0.35;
+      const opacity = line.classList.contains("is-hot") ? 0.85 : line.classList.contains("is-sky") ? 0.7 : 0.55;
+      const sky = line.classList.contains("in-sky");
       tweens.push(
         gsap.fromTo(
           line,
-          { x: "-6vw", autoAlpha: 0 },
-          { x: `${(1 - far) * 4.5}vw`, autoAlpha: opacity, duration: 3.8, delay: 1.2 + index * 0.04, ease: "none" },
+          { x: sky ? "0vw" : "-6vw", autoAlpha: 0 },
+          { x: sky ? "0vw" : `${(1 - far) * 4.5}vw`, autoAlpha: opacity, duration: 3.8, delay: 1.2 + index * 0.04, ease: "none" },
         ),
       );
     });
@@ -327,10 +393,11 @@ export function bootMv(root: HTMLElement): void {
 
   frame = (now: number) => {
     raf = 0;
-    const dt = Math.min(0.05, (now - clock.last) / 1000);
+    const dtRaw = (now - clock.last) / 1000;
+    const dt = Math.min(0.05, dtRaw);
     clock.last = now;
     if (live()) {
-      if (clock.intro < 5) clock.intro = Math.min(5, clock.intro + dt);
+      if (clock.intro < 5) clock.intro = Math.min(5, clock.intro + Math.min(0.25, dtRaw));
       const since = clock.pointer ? (now - clock.pointer) / 1000 : 99;
       const interacting = since < 1.2 || motion.scroll > 0.001;
       if (clock.intro < 5 || interacting) clock.vel = Math.min(1, clock.vel + dt / 0.2);
@@ -348,7 +415,15 @@ export function bootMv(root: HTMLElement): void {
   };
   kick();
 
+  placeScene();
+  document.fonts?.ready.then(placeScene).catch(() => undefined);
+  window.addEventListener("resize", placeScene);
   if (tier === "1") root.classList.add("is-still");
-  else if ("requestIdleCallback" in window) window.requestIdleCallback(bootGl);
-  else window.addEventListener("load", bootGl, { once: true });
+  else {
+    const arm = () => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(() => bootGl(), { timeout: 1800 });
+      else window.setTimeout(bootGl, 320);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(arm));
+  }
 }

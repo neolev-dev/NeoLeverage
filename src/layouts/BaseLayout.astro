@@ -81,7 +81,8 @@ const enHref = paired ? absoluteUrl(localePath("en", enPath ?? path)) : null;
     {(path === "/trends" || path.startsWith("/trends/category/")) && (
       <link rel="alternate" type="application/rss+xml" title="Trends" href={absoluteUrl("/trends/rss.xml")} />
     )}
-    <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high" />
+    <link rel="preload" href="/fonts/zen-kaku-500.woff2" as="font" type="font/woff2" crossorigin />
     {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
     <script is:inline>
       (function () {
