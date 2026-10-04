@@ -537,24 +537,35 @@ html[data-tier="1"] .mv-sky,
   opacity: 0.35;
   filter: blur(8px);
 }
-.wake-v {
+.wake-layer {
   position: absolute;
-  z-index: 0;
-  width: 30vw;
-  height: calc(30vw * 0.3168);
-  left: 14%;
-  top: 93%;
-  transform: translate(-100%, -42%) rotate(-12deg);
-  transform-origin: right center;
+  z-index: 1;
+  width: 35vw;
+  height: calc(35vw * 0.56);
+  left: 0;
+  top: 0;
   overflow: visible;
   pointer-events: none;
+  transform-origin: right center;
+  transform: translate(-100%, -50%) scaleX(0);
 }
 .hull { fill: url("#hull-form"); }
 .waterline { fill: none; stroke: #0f5a7a; stroke-width: 1.1; stroke-linecap: round; opacity: 0.28; }
 .waterline-hi { fill: none; stroke: none; }
 .stripe { fill: none; stroke: #fe7f38; stroke-width: 2.2; stroke-linecap: round; }
 .deck-edge { fill: none; stroke: #ffffff; stroke-width: 1.15; stroke-linecap: round; opacity: 0.82; }
-.mast-bar, .boom-bar, .mast-hi, .boom-hi { stroke: none; }
+.mast-bar, .mast-hi, .boom-hi { stroke: none; }
+.boom-bar {
+  fill: none;
+  stroke: #9aa4ab;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.bow-wave { opacity: 0; }
+html[data-tier="0"] .bow-wave,
+.mv.is-settled .bow-wave { opacity: 1; }
+.drops circle { opacity: 0; }
 .spray { opacity: 0.35; }
 .mv-boat.is-full .spray, .mv.is-settled .spray { opacity: 1; }
 [data-sail] { fill: url("#sail-camber"); fill-opacity: 1; }
@@ -592,17 +603,20 @@ html[data-tier="1"] .mv-sky,
   stroke-width: 1.35;
   stroke-linecap: round;
   transform-origin: center;
-  animation: gull-flap var(--flap, 1.1s) ease-in-out var(--count, 5);
+  animation: gull-flap var(--flap, 1.1s) ease-in-out infinite;
   animation-delay: var(--delay, 0s);
+}
+.mv.is-settled .gull svg {
+  animation: none;
+  transform: scaleY(1);
 }
 .gull:nth-child(1) { top: 20%; left: 58%; width: 30px; opacity: 0.9; }
 .gull:nth-child(2) { top: 30%; left: 72%; width: 24px; opacity: 0.8; }
 .gull:nth-child(3) { top: 24%; left: 84%; width: 18px; opacity: 0.7; }
 @keyframes gull-flap {
-  0%, 75% { transform: scaleY(1); }
-  84% { transform: scaleY(0.22); }
-  92% { transform: scaleY(1); }
-  100% { transform: scaleY(1); }
+  0%, 28% { transform: scaleY(1); }
+  46% { transform: scaleY(0.18); }
+  64%, 100% { transform: scaleY(1); }
 }
 .mv-wind { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .wind-trail {
@@ -631,16 +645,16 @@ html[data-tier="1"] .mv-sky,
   left: var(--nl-gutter);
   top: 152px;
   width: max-content;
-  max-width: min(62vw, 40rem);
+  max-width: none;
 }
 h1.mv-brand {
   margin: 0;
   color: #080808;
   font-family: "Outfit Display", "Outfit Fallback", var(--nl-font-en);
-  font-size: clamp(3.25rem, 2.1rem + 2.4vw, 4.75rem);
+  font-size: clamp(3.25rem, 6.4vw, 92px);
   font-weight: 520;
   line-height: 0.94;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   font-feature-settings: normal;
   overflow-wrap: normal;
   word-break: keep-all;

@@ -30,11 +30,6 @@ function frag(webgl2: boolean): string {
     : `#version 100\n#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n#define fragColor gl_FragColor\n${BODY}`;
 }
 
-function heave(time: number): { y: number; pitch: number } {
-  const phase = Math.sin(time * 1.7);
-  return { y: phase * 4, pitch: phase * 1.5 };
-}
-
 function software(gl: GL): boolean {
   const info = gl.getExtension("WEBGL_debug_renderer_info");
   const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || "") : "";
@@ -52,11 +47,12 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   const boat = root.querySelector<HTMLElement>("[data-boat]");
   const fleet = root.querySelector<HTMLElement>("[data-fleet]");
   const copy = root.querySelector<HTMLElement>("[data-copy]");
-  const spray = root.querySelector<HTMLElement>("[data-spray]");
   const gulls = [...root.querySelectorAll<HTMLElement>(".gull")];
+  const wake = root.querySelector<SVGSVGElement>("[data-wake]");
+  const bow = root.querySelector<SVGElement>("[data-bow]");
+  const drops = [...root.querySelectorAll<SVGCircleElement>("[data-drop]")];
   const divider = root.querySelector<HTMLElement>("[data-divider]");
   const lines = [...root.querySelectorAll<HTMLElement>(".wind-trail")];
-  const reflect = root.querySelector<HTMLElement>(".boat-reflect");
   const sp = () => window.matchMedia("(max-width: 800px)").matches;
 
   const placeScene = () => {
@@ -107,6 +103,21 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     });
   };
 
+  const placeWake = (scale: number) => {
+    const svg = boat?.querySelector("svg");
+    if (!wake || !svg) return;
+    const pt = svg.createSVGPoint();
+    pt.x = 46;
+    pt.y = 428;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const p = pt.matrixTransform(ctm);
+    const host = root.getBoundingClientRect();
+    wake.style.left = `${p.x - host.left}px`;
+    wake.style.top = `${p.y - host.top}px`;
+    wake.style.transform = `translate(-100%, -50%) scaleX(${scale})`;
+  };
+
   if (tier === "0") {
     root.querySelectorAll<SVGPathElement>("[data-full]").forEach((path) => {
       if (path.dataset.full) path.setAttribute("d", path.dataset.full);
@@ -114,9 +125,18 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     boat?.classList.add("is-full");
     divider?.classList.add("is-drawn");
     root.classList.add("is-settled");
-    placeScene();
-    document.fonts?.ready.then(placeScene).catch(() => undefined);
-    window.addEventListener("resize", placeScene);
+    if (bow) bow.style.opacity = "1";
+    drops.forEach((drop) => {
+      drop.style.opacity = "0";
+    });
+    const show = () => {
+      placeWake(1);
+      placeScene();
+    };
+    show();
+    requestAnimationFrame(show);
+    document.fonts?.ready.then(show).catch(() => undefined);
+    window.addEventListener("resize", show);
     return;
   }
 
@@ -125,24 +145,41 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   let raf = 0;
   let frame = (_now: number) => {};
   const live = () => !clock.hidden && !clock.away;
-  const tweens: Array<{ paused: (value?: boolean) => void }> = [];
+  let timeline: { seek: (time: number) => void } | null = null;
 
   const pose = () => {
     if (!boat) return;
-    const damp = clock.intro < 4.2 ? 1 : clock.intro >= 5 ? 0 : 1 - (clock.intro - 4.2) / 0.8;
-    const wave = heave(Math.min(clock.intro, 4.2));
-    const heel = motion.sail * 8 + wave.pitch * damp;
-    if (!sp()) boat.style.left = "68%";
-    boat.style.transform = `translate3d(-50%, ${wave.y * damp}px, 0) rotate(${heel}deg)`;
-    if (spray) spray.style.opacity = String(0.2 + motion.sail * 0.75);
-    const drift = (1 - motion.surge) * -4 - Math.min(motion.scroll, 0.75) * 6;
-    if (fleet) fleet.style.transform = `translateX(${drift}vw)`;
-    const pass = motion.surge * 6 + (motion.scroll < 0.4 ? (motion.scroll / 0.4) * 8 : motion.scroll > 0 ? 8 : 0);
-    const span = sp() ? 3 : 6;
-    const travel = Math.min(pass, span);
-    gulls.forEach((gull) => {
-      gull.style.transform = `translate3d(${travel - span}vw, 0, 0)`;
+    const span = clock.intro < 3 ? 0 : Math.min(1, (clock.intro - 3) / 2);
+    const heelU = clock.intro >= 5 ? 1 : span <= 0 ? 0 : lever(span);
+    const slide = span * span * (3 - 2 * span);
+    const back = (1 - slide) * 3;
+    boat.style.transform = `translate3d(calc(-50% - ${back}vw), 0px, 0) rotate(${heelU * 8}deg)`;
+    placeWake(slide);
+    if (bow) bow.style.opacity = String(span <= 0 ? 0 : Math.min(1, span / 0.4));
+    const gullU = Math.min(1, clock.intro / 5);
+    gulls.forEach((gull, index) => {
+      const dist = 4 + (index % 3) * 1.5;
+      gull.style.transform = `translate3d(${(gullU - 1) * dist}vw, 0, 0)`;
     });
+    drops.forEach((drop) => {
+      const baseX = Number(drop.dataset.x);
+      const baseY = Number(drop.dataset.y);
+      const rise = Number(drop.dataset.rise);
+      const delay = Number(drop.dataset.delay);
+      const t = (clock.intro - 3 - delay) / 0.6;
+      if (clock.intro < 3 || clock.intro >= 5 || t <= 0 || t >= 1) {
+        drop.style.opacity = "0";
+        drop.setAttribute("cx", String(baseX));
+        drop.setAttribute("cy", String(baseY));
+        return;
+      }
+      const spread = (baseX - 322) * 0.35;
+      drop.setAttribute("cx", String(baseX + spread * t));
+      drop.setAttribute("cy", String(baseY - rise * t));
+      drop.style.opacity = String(0.9 * (1 - t));
+    });
+    const shift = -Math.min(motion.scroll, 0.75) * 6;
+    if (fleet) fleet.style.transform = shift ? `translateX(${shift}vw)` : "";
     if (clock.intro >= 5) root.classList.add("is-settled");
     placeScene();
   };
@@ -151,41 +188,35 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     if (!raf && live()) raf = requestAnimationFrame(frame);
   };
   const setRun = () => {
-    tweens.forEach((tween) => tween.paused(!live()));
     kick();
   };
 
   void import("gsap/MorphSVGPlugin").then(({ MorphSVGPlugin }) => {
     gsap.registerPlugin(MorphSVGPlugin);
-    const morph = (path: SVGPathElement | null, key: "half" | "full", at: number) => {
-      const target = path?.dataset[key];
-      if (!path || !target) return;
-      tweens.push(gsap.to(path, { morphSVG: target, duration: 0.6, delay: at, ease: lever }));
-    };
+    const tl = gsap.timeline({ paused: true });
     root.querySelectorAll<SVGPathElement>("[data-full]").forEach((path) => {
-      morph(path, "half", 2.4);
-      morph(path, "full", 3.0);
+      const half = path.dataset.half;
+      const full = path.dataset.full;
+      if (half) tl.to(path, { morphSVG: half, duration: 0.9, ease: "power1.inOut" }, 1.2);
+      if (full) tl.to(path, { morphSVG: full, duration: 0.9, ease: lever }, 2.1);
     });
-    tweens.push(
-      gsap.to(motion, { front: 1, duration: 1.2, delay: 1.2, ease: "power1.inOut" }),
-      gsap.to(motion, { wind: 1, duration: 1.2, delay: 1.2, ease: "power1.inOut" }),
-      gsap.to(motion, { sail: 1, duration: 1.2, delay: 2.4, ease: lever }),
-      gsap.to(motion, { surge: 1, duration: 1.4, delay: 3.6, ease: "power2.inOut" }),
-      gsap.from(".mv-ja", { y: 12, autoAlpha: 0, duration: 0.8, delay: 0.2, ease: "power3.out" }),
-    );
+    tl.to(motion, { sail: 1, front: 1, wind: 1, duration: 1.8, ease: "power1.inOut" }, 1.2);
     lines.forEach((line, index) => {
       const opacity = line.classList.contains("is-hot") ? 0.7 : 0.85;
-      tweens.push(
-        gsap.fromTo(
-          line,
-          { x: "-4vw", autoAlpha: 0 },
-          { x: "2vw", autoAlpha: opacity, duration: 3.4, delay: 1.15 + index * 0.12, ease: "power1.out" },
-        ),
+      tl.fromTo(
+        line,
+        { x: "-72vw", autoAlpha: 0 },
+        { x: "0vw", autoAlpha: opacity, duration: 0.9, ease: "power2.out", immediateRender: false },
+        3 + index * 0.4,
       );
     });
-    if (reflect) {
-      tweens.push(gsap.to(reflect, { x: 2, duration: 0.8, repeat: 5, yoyo: true, ease: "sine.inOut" }));
-    }
+    tl.fromTo(
+      ".mv-ja",
+      { y: 12, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.8, ease: "power3.out" },
+      0,
+    );
+    timeline = tl;
     setRun();
   });
 
@@ -393,6 +424,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     clock.last = now;
     if (live()) {
       if (clock.intro < 5) clock.intro = Math.min(5, clock.intro + Math.min(0.25, dtRaw));
+      timeline?.seek(clock.intro);
       const since = clock.pointer ? (now - clock.pointer) / 1000 : 99;
       const interacting = since < 1.2 || motion.scroll > 0.001;
       if (clock.intro < 5 || interacting) clock.vel = Math.min(1, clock.vel + dt / 0.2);
