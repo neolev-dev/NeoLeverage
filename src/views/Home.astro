@@ -22,7 +22,9 @@ const jsonLd = graph([
   pageNode({ canonical, locale, name: title, description, about: true }),
 ]);
 const areas = [...content.areas].sort((a, b) => a.order - b.order);
-const focus = content.services.filter((item) => item.is_focus);
+const focus = ["ai-automation", "photo-sns-video"]
+  .map((slug) => content.services.find((item) => item.slug === slug))
+  .filter((item): item is NonNullable<typeof item> => Boolean(item));
 const notices = [...content.notices].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
 const insights = [...content.insights].slice(0, 3);
 const dos = locale === "ja"
@@ -40,39 +42,36 @@ const flow = locale === "ja"
   <MainVisual locale={locale} />
   <div class="page page-wide">
     <section class="section" id="values">
-      <div class="section-head" data-reveal>
-        <div>
-          <p class="kicker">01 — Creative / Marketing / AI</p>
-          <h2>{copy.valuesTitle}</h2>
-        </div>
+      <div class="section-head">
+        <p class="idx">01</p>
+        <p class="en-label" lang="en">Creative / Marketing / AI</p>
+        <h2>{copy.valuesTitle}</h2>
       </div>
-      <div class="flow">
+      <div class="rows">
         {areas.map((area, index) => (
-          <article data-reveal>
-            <a class="card" href={`${localePath(locale, "/services")}#${area.anchor}`}>
-              <span class="num">{String(index + 1).padStart(2, "0")}</span>
-              <span>
-                <span class="meta">{area.catch_ja}</span>
-                <h3 class="en-label">{area.name_ja}</h3>
-                <p>{locale === "ja" ? area.lead_ja : area.lead_en}</p>
-              </span>
-            </a>
-          </article>
+          <a class="row" href={`${localePath(locale, "/services")}#${area.anchor}`}>
+            <span class="num">{String(index + 1).padStart(2, "0")}</span>
+            <span>
+              <span class="row-title" lang="en">{area.name_en}</span>
+              <p>{locale === "ja" ? area.lead_ja : area.lead_en}</p>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
         ))}
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-head" data-reveal>
-        <div>
-          <p class="kicker">02</p>
-          <h2>{copy.flowTitle}</h2>
-        </div>
+    <section class="section" data-flow>
+      <div class="section-head">
+        <p class="idx">02</p>
+        <p class="en-label" lang="en">Flow</p>
+        <h2>{copy.flowTitle}</h2>
       </div>
-      <div class="flow">
+      <div class="rows">
+        <div class="flow-rule" data-flow-line></div>
         {flow.map(([name, text]) => (
-          <article data-reveal>
-            <strong>{name}</strong>
+          <article class="row">
+            <strong lang="en">{name}</strong>
             <p>{text}</p>
           </article>
         ))}
@@ -80,16 +79,15 @@ const flow = locale === "ja"
     </section>
 
     <section class="section">
-      <div class="section-head" data-reveal>
-        <div>
-          <p class="kicker">03 — Focus</p>
-          <h2>{copy.focusTitle}</h2>
-        </div>
+      <div class="section-head">
+        <p class="idx">03</p>
+        <p class="en-label" lang="en">Focus</p>
+        <h2>{copy.focusTitle}</h2>
       </div>
-      <div class="focus-grid">
-        {focus.map((item, index) => (
-          <a class:list={["card", index === 0 && "focus-main"]} href={localePath(locale, `/services/${item.slug}`)} data-reveal>
-            <span class="num">{String(index + 1).padStart(2, "0")}</span>
+      <div class="focus-split">
+        {focus.map((item) => (
+          <a class="focus-card" href={localePath(locale, `/services/${item.slug}`)}>
+            <div class="figure"><span>イメージ</span></div>
             <h3>{locale === "ja" ? item.name_ja : item.name_en}</h3>
             <p>{locale === "ja" ? item.summary_ja : item.summary_en}</p>
           </a>
@@ -98,78 +96,92 @@ const flow = locale === "ja"
     </section>
 
     <section class="section">
-      <div class="split">
-        <div data-reveal>
-          <p class="kicker">We Are</p>
-          <h2>{copy.doDontTitle}</h2>
-          <p>{locale === "ja" ? "クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。それぞれが影響し合い、価値をレバレッジする。" : "We don’t treat creative, marketing, and technology as separate. They influence one another—leveraging value together."}</p>
-          <p><a href={localePath(locale, "/we-are")}>{copy.weAre}</a></p>
-        </div>
-        <div class="do-grid">
-          <article class="panel" data-reveal>
-            <h3>{copy.do}</h3>
-            <ul>{dos.map((item) => <li>{item}</li>)}</ul>
-          </article>
-          <article class="panel" data-reveal>
-            <h3>{copy.dont}</h3>
-            <ul>{donts.map((item) => <li class="dont-item"><s>{item}</s></li>)}</ul>
-          </article>
-        </div>
+      <div class="section-head">
+        <p class="idx">04</p>
+        <p class="en-label" lang="en">We Are</p>
+        <h2>{copy.doDontTitle}</h2>
+        <p class="lead">{locale === "ja" ? "クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。それぞれが影響し合い、価値をレバレッジする。" : "We don’t treat creative, marketing, and technology as separate. They influence one another—leveraging value together."}</p>
+        <p><a href={localePath(locale, "/we-are")}>{copy.weAre}</a></p>
+      </div>
+      <div class="do-grid">
+        <article>
+          <h3>{copy.do}</h3>
+          <ul class="plain">{dos.map((item) => <li>{item}</li>)}</ul>
+        </article>
+        <article>
+          <h3>{copy.dont}</h3>
+          <ul class="plain">{donts.map((item) => <li class="dont-item"><s>{item}</s></li>)}</ul>
+        </article>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <div>
-          <p class="kicker">Trends</p>
-          <h2>{copy.trendsLead}</h2>
-        </div>
-        <a href={localePath(locale, "/trends")}>{copy.more}</a>
+        <p class="idx">05</p>
+        <p class="en-label" lang="en">Trends</p>
+        <h2>{copy.trendsLead}</h2>
+        <p><a href={localePath(locale, "/trends")}>{copy.more}</a></p>
       </div>
-      <ul class="card-grid">
-        {insights.map((item) => (
-          <li>
-            <a class="card" href={localePath(locale, `/trends/${item.slug}`)}>
-              <span class="meta">{item.published_at}</span>
-              <h3>{locale === "ja" ? item.title_ja : item.title_en}</h3>
+      <div class="trend-home">
+        {insights[0] && (
+          <a class="trend-feature" href={localePath(locale, `/trends/${insights[0].slug}`)}>
+            <div class="figure wide"><span>{locale === "ja" ? "イメージ" : "Image"}</span></div>
+            <span class="meta">{insights[0].published_at}</span>
+            <h3>{locale === "ja" ? insights[0].title_ja : insights[0].title_en}</h3>
+          </a>
+        )}
+        <div class="rows">
+          {insights.slice(1).map((item) => (
+            <a class="row" href={localePath(locale, `/trends/${item.slug}`)}>
+              <span class="num">{item.published_at}</span>
+              <span>
+                <h3>{locale === "ja" ? item.title_ja : item.title_en}</h3>
+              </span>
+              <span class="arrow" aria-hidden="true">→</span>
             </a>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <div>
-          <p class="kicker">Notice</p>
-          <h2>{copy.notice}</h2>
-        </div>
-        <a href={localePath(locale, "/notice")}>{copy.more}</a>
+        <p class="idx">06</p>
+        <p class="en-label" lang="en">Notice</p>
+        <h2>{copy.notice}</h2>
+        <p><a href={localePath(locale, "/notice")}>{copy.more}</a></p>
       </div>
-      <ul class="notice-list">
+      <div class="rows">
         {notices.filter((item) => locale === "ja" || item.title_en).map((item) => (
-          <li class="tool-row">
-            <span>{item.date}</span>
-            <a href={localePath(locale, `/notice/${item.slug}`)}>{locale === "ja" ? item.title_ja : item.title_en}</a>
-          </li>
+          <a class="row" href={localePath(locale, `/notice/${item.slug}`)}>
+            <span class="num">{item.date}</span>
+            <span><h3>{locale === "ja" ? item.title_ja : item.title_en}</h3></span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
         ))}
-      </ul>
+      </div>
     </section>
 
     <section class="section">
-      <h2>{copy.worksTitle}</h2>
-      <p class="lead">{copy.worksLead}</p>
-      <div class="tool-table">
-        {content.tools.filter((row) => row.group === "works").map((row) => (
-          <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
-        ))}
+      <div class="section-head">
+        <p class="idx">07</p>
+        <p class="en-label" lang="en">Works With</p>
+        <h2>{copy.worksTitle}</h2>
+        <p class="lead">{copy.worksLead}</p>
       </div>
-      <h2 style="margin-top:3rem">{copy.protoTitle}</h2>
-      <p class="lead">{copy.protoLead}</p>
-      <div class="tool-table">
-        {content.tools.filter((row) => row.group === "prototypes").map((row) => (
-          <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
-        ))}
+      <div class="stack">
+        <div class="tool-table">
+          {content.tools.filter((row) => row.group === "works").map((row) => (
+            <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
+          ))}
+        </div>
+        <h3 class="subhead">{copy.protoTitle}</h3>
+        <p class="lead">{copy.protoLead}</p>
+        <div class="tool-table">
+          {content.tools.filter((row) => row.group === "prototypes").map((row) => (
+            <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
+          ))}
+        </div>
       </div>
     </section>
 

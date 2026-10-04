@@ -50,26 +50,26 @@ const areas = [...content.areas].sort((a, b) => a.order - b.order);
 
     {areas.map((area) => {
       const services = content.services.filter((service) => service.area === area.slug);
+      const ja = locale === "ja";
       return (
         <section class="section" id={area.anchor}>
-          <p class="kicker">{area.catch_ja}</p>
-          <h2>{area.name_ja}</h2>
-          <p class="lead">{locale === "ja" ? area.lead_ja : area.lead_en}</p>
-          <ul>
-            {(locale === "ja" ? area.capabilities_ja : area.capabilities_en).map((item) => <li>{item}</li>)}
-          </ul>
-          <p><a href={localePath(locale, `/services/${area.slug}`)}>{area.name_ja}</a></p>
-          <ul class="card-grid">
-            {services.map((service) => (
-              <li>
-                <a class="card" href={localePath(locale, `/services/${service.slug}`)}>
-                  {service.is_focus && <span class="meta">Focus</span>}
-                  <h3>{locale === "ja" ? service.name_ja : service.name_en}</h3>
-                  <p>{locale === "ja" ? service.tailwind_benefit_ja : service.tailwind_benefit_en}</p>
-                </a>
-              </li>
+          <div class="section-head">
+            <p class="display-sm" lang="en" data-parallax>{area.name_en}</p>
+            <h2>{ja ? area.name_ja : area.name_en}</h2>
+            <p class="lead">{ja ? area.lead_ja : area.lead_en}</p>
+          </div>
+          <div class="rows">
+            {services.map((service, index) => (
+              <a class="row" href={localePath(locale, `/services/${service.slug}`)}>
+                <span class="num">{String(index + 1).padStart(2, "0")}</span>
+                <span>
+                  <h3>{ja ? service.name_ja : service.name_en}</h3>
+                  <p>{ja ? service.tailwind_benefit_ja : service.tailwind_benefit_en}</p>
+                </span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
             ))}
-          </ul>
+          </div>
         </section>
       );
     })}
@@ -80,16 +80,26 @@ const areas = [...content.areas].sort((a, b) => a.order - b.order);
       <p>{locale === "ja" ? content.settings.quote_policy_ja : content.settings.quote_policy_en}</p>
       <p>{locale === "ja" ? "期間の目安は、内容を伺ったうえでお伝えします。内容により変わります。" : "Timing is shared after we hear the work. It changes with the scope."}</p>
     </section>
-    <section>
-      <h2>{copy.faq}</h2>
-      <ul class="faq-list">
+    <section class="section">
+      <div class="section-head">
+        <p class="en-label" lang="en">FAQ</p>
+        <h2>{copy.faq}</h2>
+      </div>
+      <div class="faq-list">
         {faqs.map((faq) => (
-          <li class="panel" style="margin-bottom:0.8rem">
-            <h3>{locale === "ja" ? faq.question_ja : faq.question_en}</h3>
+          <details class="faq">
+            <summary>{locale === "ja" ? faq.question_ja : faq.question_en}</summary>
             <p>{locale === "ja" ? faq.answer_ja : faq.answer_en}</p>
-          </li>
+          </details>
         ))}
-      </ul>
+      </div>
+    </section>
+    <section class="cta-band">
+      <div>
+        <h2>{copy.ctaTitle}</h2>
+        <p>{copy.ctaBody}</p>
+      </div>
+      <a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a>
     </section>
   </div>
 </BaseLayout>

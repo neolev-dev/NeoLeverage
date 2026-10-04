@@ -25,5 +25,5 @@ const svg = raw
   .logo { display: inline-flex; line-height: 0; }
   .on-dark { color: #fff; }
   .on-light { color: #080808; }
-  .logo :global(.logo-svg) { display: block; width: auto; height: 1.35rem; }
+  .logo :global(.logo-svg) { display: block; width: var(--logo-w, auto); height: var(--logo-h, 1.35rem); }
 </style>

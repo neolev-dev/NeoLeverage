@@ -45,17 +45,41 @@ const jsonLd = noindex ? null : graph([
 ---
 
 <BaseLayout locale={locale} title={title} description={description} path={path} enPath={path} noindex={noindex} alternate={false} ogType="article" ogImage={imageUrl} jsonLd={jsonLd}>
-  <article class="page">
-    <Breadcrumb items={crumbs} />
-    <p class="meta">{insight.published_at} / {insight.category}</p>
-    <h1>{ja ? insight.title_ja : insight.title_en}</h1>
-    <p class="meta">{ja ? content.settings.editorial_name_ja : content.settings.editorial_name_en} · <a href={localePath(locale, "/editorial-policy")}>{copy.readPolicy}</a></p>
-    <img class="cover" src={image.src} width={image.attributes.width} height={image.attributes.height} alt={alt} />
-    <section class="section prose">
-      <h2>{copy.summary}</h2>
-      <p>{ja ? insight.lead_ja : (insight.lead_en || copy.trendPending)}</p>
-      {insight.body_pending && <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{copy.trendPending}</p>}
-    </section>
-    <p><a href={localePath(locale, "/trends")}>{copy.backToList}</a></p>
+  <div class="read-bar" data-read-bar></div>
+  <article class="page article">
+    <nav class="toc" aria-label={ja ? "目次" : "Contents"}>
+      <p class="meta">{ja ? "目次" : "Contents"}</p>
+      <a href="#summary">{copy.summary}</a>
+      <a href="#view">{ja ? "NeoLeverageの視点" : "NeoLeverage’s view"}</a>
+      <a href="#sources">{ja ? "出典" : "Sources"}</a>
+    </nav>
+    <div class="article-body">
+      <Breadcrumb items={crumbs} />
+      <p class="meta">{insight.published_at} · {category ? (ja ? category.name_ja : category.name_en) : insight.category} · {ja ? content.settings.editorial_name_ja : content.settings.editorial_name_en}</p>
+      <h1>{ja ? insight.title_ja : insight.title_en}</h1>
+      <p class="meta"><a href={localePath(locale, "/editorial-policy")}>{copy.readPolicy}</a></p>
+      <div class="figure wide">
+        <img src={image.src} width={image.attributes.width} height={image.attributes.height} alt={alt} />
+        <span>{ja ? "イメージ" : "Image"}</span>
+      </div>
+      <section class="note" id="summary">
+        <h2>{copy.summary}</h2>
+        <p>{ja ? insight.lead_ja : (insight.lead_en || copy.trendPending)}</p>
+      </section>
+      <section class="note is-view" id="view">
+        <h2>{ja ? "NeoLeverageの視点" : "NeoLeverage’s view"}</h2>
+        <p>{ja ? insight.aio_ja.summary : copy.trendPending}</p>
+      </section>
+      <div class="prose">
+        {insight.body_pending && <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{copy.trendPending}</p>}
+      </div>
+      <section id="sources">
+        <h2>{ja ? "出典" : "Sources"}</h2>
+        <ol class="sources">
+          <li><span class="num">01</span> {ja ? "本文と出典は移行前です。" : "Body and sources are not migrated yet."}</li>
+        </ol>
+      </section>
+      <p><a href={localePath(locale, "/trends")}>{copy.backToList}</a></p>
+    </div>
   </article>
 </BaseLayout>

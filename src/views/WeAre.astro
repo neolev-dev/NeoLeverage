@@ -46,7 +46,7 @@ const donts = locale === "ja"
     <div class="prose">
       {locale === "ja" ? (
         <>
-          <p>クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。</p>
+          <p class="statement">クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。</p>
           <p>それぞれが影響し合い、価値をレバレッジする。</p>
           <p>私たちは、Web制作・マーケティング領域において、企画・設計から制作、運用、改善まで、20年以上にわたり現場で実務を積み重ねてきました。</p>
           <p>大手広告代理店・大手制作会社での実務と、10年以上にわたるWeb制作会社の経営経験をもとに、企画から制作・運用まで一貫して支援します。</p>
@@ -54,7 +54,7 @@ const donts = locale === "ja"
         </>
       ) : (
         <>
-          <p>We don’t treat creative, marketing, and technology as separate.</p>
+          <p class="statement">We don’t treat creative, marketing, and technology as separate.</p>
           <p>They influence one another—leveraging value together.</p>
           <p>We have over 20 years of hands-on experience in web production and marketing, covering everything from planning and design to execution, operations, and optimization.</p>
           <p>The work draws on practice at major advertising agencies and production companies, and on more than ten years of running a web production company. Planning, production, and operations stay in one line.</p>
@@ -67,23 +67,17 @@ const donts = locale === "ja"
       <article class="panel"><h2>{copy.dont}</h2><ul>{donts.map((item) => <li class="dont-item"><s>{item}</s></li>)}</ul></article>
     </div>
     <section class="section">
-      <h2>{locale === "ja" ? "会社概要" : "Company"}</h2>
+      <div class="section-head">
+        <p class="en-label" lang="en">Company</p>
+        <h2>{locale === "ja" ? "会社概要" : "Company"}</h2>
+      </div>
       <dl class="tool-table">
-        <div class="tool-row"><dt>{copy.companyName}</dt><dd>{locale === "ja" ? "NeoLeverage株式会社（ネオレバレッジ）" : "NeoLeverage Inc."}</dd></div>
+        <div class="tool-row"><dt>{copy.companyName}</dt><dd>{locale === "ja" ? "NeoLeverage株式会社／ネオレバレッジ" : "NeoLeverage Inc."}</dd></div>
         <div class="tool-row"><dt>{copy.established}</dt><dd>{locale === "ja" ? "2025年10月6日" : "October 6, 2025"}</dd></div>
-        <div class="tool-row"><dt>{locale === "ja" ? "代表取締役" : "Representative"}</dt><dd>{copy.representativeNote}</dd></div>
+        <div class="tool-row"><dt>{locale === "ja" ? "本店" : "Head office"}</dt><dd>{locale === "ja" ? "福岡" : "Fukuoka"}</dd></div>
+        <div class="tool-row"><dt>{locale === "ja" ? "拠点" : "Office"}</dt><dd>{locale === "ja" ? "東京" : "Tokyo"}</dd></div>
+        <div class="tool-row"><dt>{copy.business}</dt><dd>{(locale === "ja" ? settings.business_summary_ja : settings.business_summary_en).join(locale === "ja" ? "、" : ", ")}</dd></div>
       </dl>
-      <h3>{copy.offices}</h3>
-      {settings.offices.map((office) => (
-        <p>
-          <strong>{locale === "ja" ? office.name : office.name_en}</strong>
-          {office.is_headquarters ? ` (${copy.hq})` : ""}
-          <br />
-          {locale === "ja" ? `〒${office.postal_code} ${office.address_region}${office.address_locality}${office.street_address}` : office.address_en}
-        </p>
-      ))}
-      <h3>{copy.business}</h3>
-      <ul>{(locale === "ja" ? settings.business_summary_ja : settings.business_summary_en).map((item) => <li>{item}</li>)}</ul>
     </section>
     <section>
       <h2>{locale === "ja" ? "これから" : "Toward the Future"}</h2>

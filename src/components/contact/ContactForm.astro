@@ -15,6 +15,7 @@ const topics = Object.entries(copy.formTopics);
 ---
 
 <form class="form" data-contact data-locale={locale} action="/api/contact" method="post" novalidate>
+  <p class="meta" data-progress>{locale === "ja" ? "1 入力 → 2 確認 → 3 完了" : "1 Write → 2 Review → 3 Done"}</p>
   <div data-step="edit">
     <div class="field">
       <label for="name">{copy.formName} <span>{copy.formRequired}</span></label>
@@ -63,7 +64,7 @@ const topics = Object.entries(copy.formTopics);
   </div>
   <div data-step="confirm" hidden>
     <h2>{copy.formConfirm}</h2>
-    <ul class="confirm-list" data-summary></ul>
+    <dl class="confirm-list" data-summary></dl>
     <div class="actions">
       <button class="btn btn-ghost" type="button" data-back>{copy.formBack}</button>
       <button class="btn btn-accent" type="button" data-send>{copy.formSend}</button>
@@ -121,10 +122,10 @@ const topics = Object.entries(copy.formTopics);
     const rows = [value.name, value.company, value.email, value.phone, topicLabel, value.message];
     summary.innerHTML = "";
     rows.forEach((text, index) => {
-      const item = document.createElement("li");
-      const label = document.createElement("div");
+      const item = document.createElement("div");
+      const label = document.createElement("dt");
       label.textContent = labels[index] ?? "";
-      const body = document.createElement("p");
+      const body = document.createElement("dd");
       body.textContent = text || "—";
       item.append(label, body);
       summary.append(item);

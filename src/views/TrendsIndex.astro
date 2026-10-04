@@ -39,8 +39,8 @@ const jsonLd = graph([
   <div class="page">
     <div class="mast">
       <Breadcrumb items={crumbs} />
-      <p class="kicker">Trends</p>
-      <h1>{current ? (ja ? current.name_ja : current.name_en) : copy.trendsLead}</h1>
+      <h1 lang="en">Trends</h1>
+      <p class="statement">{current ? (ja ? current.name_ja : current.name_en) : copy.trendsLead}</p>
       <p class="lead">{ja ? "Trendsでは、AI・クリエイティブ・マーケティング・テック関連の領域を中心に、Web業界で起きているニュースを取り上げています。" : "Trends follows news across AI, creative, marketing, and technology."}</p>
     </div>
     <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{ja ? "掲載は現行サイトの見出しと要約の一部です。169件の本文はまだ移行していません。" : "Only a sample of current headlines is here. The full archive is not migrated."}</p>

@@ -49,11 +49,15 @@ const children = isArea(entry) ? content.services.filter((item) => item.area ===
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
     {isArea(entry) ? (
-      <AreaBody area={entry} locale={locale} copy={copy} services={children} />
+      <>
+        <Breadcrumb items={crumbs} />
+        <AreaBody area={entry} locale={locale} copy={copy} services={children} />
+      </>
     ) : (
-      <ServiceBody service={entry} locale={locale} copy={copy} related={related} faqs={faqs} quote={locale === "ja" ? content.settings.quote_policy_ja : content.settings.quote_policy_en} areaName={areaEntry?.name_ja ?? ""} />
+      <ServiceBody service={entry} locale={locale} copy={copy} related={related} faqs={faqs} quote={locale === "ja" ? content.settings.quote_policy_ja : content.settings.quote_policy_en} areaName={areaEntry ? (locale === "ja" ? areaEntry.name_ja : areaEntry.name_en) : ""}>
+        <Breadcrumb slot="crumbs" items={crumbs} />
+      </ServiceBody>
     )}
   </div>
 </BaseLayout>

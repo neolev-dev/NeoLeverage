@@ -65,27 +65,31 @@ async function boot() {
     canvas.width = w;
     canvas.height = h;
     gl.viewport(0, 0, w, h);
-    const fov = ((narrow ? 52 : 38) * Math.PI) / 180;
-    const horizon = narrow ? 0.62 : 0.56;
+    const fov = ((narrow ? 50 : 36) * Math.PI) / 180;
+    const horizon = narrow ? 0.6 : 0.66;
     const pitch = leverPitch(fov, horizon);
     const ship = narrow
-      ? [0.64, 0.4505, 0.36, 0.291]
-      : [0.68, 0.225, (0.44 * h * (320 / 460)) / w, 0.44];
+      ? [0.58, 0.43, 0.42, 0.42 * (w / h) * (460 / 340)]
+      : [0.64, 0.26, 0.43 * (h / w) * (340 / 460), 0.43];
     gl.uniform2f(u("uRes"), w, h);
-    gl.uniform1f(u("uTime"), 4.2);
+    gl.uniform1f(u("uTime"), 5);
     gl.uniform1f(u("uWind"), 1);
     gl.uniform1f(u("uWindFront"), 1);
     gl.uniform1f(u("uPitch"), pitch);
     gl.uniform1f(u("uFov"), fov);
-    gl.uniform1f(u("uSunEl"), (2 * Math.PI) / 180);
+    gl.uniform1f(u("uSunEl"), (14 * Math.PI) / 180);
     gl.uniform4f(u("uShip"), ship[0], ship[1], ship[2], ship[3]);
     gl.uniform1f(u("uSail"), 1);
     gl.uniform1f(u("uWake"), 0.85);
     gl.uniform1f(u("uConverge"), 0);
     gl.uniform1f(u("uGlitter"), 1);
-    gl.uniform1f(u("uOct"), 0);
+    gl.uniform1f(u("uOct"), 4);
     gl.uniform1f(u("uHi"), 1);
     gl.uniform1f(u("uFade"), 0);
+    gl.uniform1f(u("uExposure"), 0.4);
+    gl.uniform1f(u("uCaustic"), 1);
+    gl.uniform4f(u("uHead"), narrow ? 0.05 : 0.044, narrow ? 0.13 : 0.12, narrow ? 0.9 : 0.48, narrow ? 0.28 : 0.4);
+    gl.uniform1f(u("uSunX"), narrow ? 0.86 : 0.84);
     gl.uniform3f(u("uTap"), 0, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
@@ -105,7 +109,7 @@ async function boot() {
   const ctx = flat.getContext("2d");
   ctx.drawImage(canvas, 0, 0);
   ctx.drawImage(mark, 64, 40, 360, 360 * (mark.height / mark.width));
-  ctx.fillStyle = "#0E1A24";
+  ctx.fillStyle = "#080808";
   ctx.textBaseline = "alphabetic";
   ctx.font = "500 72px OutfitLocal";
   ctx.fillText("Tailwinds", 64, 188);
