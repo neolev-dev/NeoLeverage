@@ -107,8 +107,8 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const svg = boat?.querySelector("svg");
     if (!wake || !svg) return;
     const pt = svg.createSVGPoint();
-    pt.x = 46;
-    pt.y = 428;
+    pt.x = 30;
+    pt.y = 436;
     const ctm = svg.getScreenCTM();
     if (!ctm) return;
     const p = pt.matrixTransform(ctm);
