@@ -16,6 +16,10 @@ uniform float uFade;
 uniform float uExposure;
 uniform float uCaustic;
 uniform vec4 uHead;
+uniform vec2 uStern;
+uniform vec2 uBow;
+uniform float uYaw;
+uniform float uBeam;
 uniform float uSunX;
 uniform vec3 uTap;
 uniform float uHorizon;
@@ -87,6 +91,11 @@ vec3 ray(vec2 frag){
   vec3 rd=normalize(vec3(ndc.x*th*uRes.x/uRes.y,ndc.y*th,1.));
   float cp=cos(uPitch),sp=sin(uPitch);
   return vec3(rd.x,cp*rd.y+sp*rd.z,-sp*rd.y+cp*rd.z);
+}
+vec2 planeAt(vec2 frag){
+  vec3 rd=ray(frag);
+  float t=1.8/max(-rd.y,1e-4);
+  return vec2(rd.x,rd.z)*t;
 }
 
 void main(){
@@ -169,6 +178,68 @@ void main(){
     float period=max(uRes.x*.6,1.);
     float swell=sin((frag.x+uScroll*period*1.25)/period*6.2831853);
     col*=1.+swell*.04*fore;
+    if(uWake>0.001 && uStern.y>h && uBow.y>h){
+      vec2 sternFrag=vec2(uStern.x*uRes.x,(1.-uStern.y)*uRes.y);
+      vec2 bowFrag=vec2(uBow.x*uRes.x,(1.-uBow.y)*uRes.y);
+      vec2 sternP=planeAt(sternFrag);
+      vec2 bowP=planeAt(bowFrag);
+      vec2 head=bowP-sternP;
+      float headL=length(head);
+      head=headL>1e-4?head/headL:vec2(1.,0.);
+      float cyaw=cos(uYaw),syaw=sin(uYaw);
+      head=vec2(cyaw*head.x-syaw*head.y,syaw*head.x+cyaw*head.y);
+      vec2 aftP=-head;
+      vec2 sideP=vec2(-aftP.y,aftP.x);
+      vec2 jx=planeAt(sternFrag+vec2(1.,0.))-sternP;
+      vec2 jy=planeAt(sternFrag+vec2(0.,1.))-sternP;
+      float det=jx.x*jy.y-jx.y*jy.x;
+      if(abs(det)>1e-5){
+        vec2 aftS=vec2(jy.y*aftP.x-jy.x*aftP.y,-jx.y*aftP.x+jx.x*aftP.y)/det;
+        float aLen=length(aftS);
+        if(aLen>1e-3){
+          vec2 aft=aftS/aLen;
+          vec2 acr=vec2(-aft.y,aft.x);
+          float cs=cos(.340339),sn=sin(.340339);
+          vec2 armP=cs*aftP+sn*sideP;
+          vec2 armS=vec2(jy.y*armP.x-jy.x*armP.y,-jx.y*armP.x+jx.x*armP.y)/det;
+          float spread=abs(dot(armS,acr))/max(abs(dot(armS,aft)),1e-3);
+          spread=clamp(spread,.06,.42);
+          vec2 d=frag-sternFrag;
+          float alongPx=dot(d,aft);
+          float acrossPx=dot(d,acr);
+          float alongVw=alongPx/max(uRes.x,1.);
+          float reach=.35*clamp(uWake,0.,1.);
+          if(alongVw>-0.012 && alongVw<reach){
+            float sternHalf=max(uBeam,.008)*uRes.x;
+            float armLine=sternHalf+max(alongPx,0.)*spread;
+            float armW=mix(.04,.014,smoothstep(.02,.30,alongVw))*uRes.x;
+            float dArm=min(abs(acrossPx-armLine),abs(acrossPx+armLine));
+            float arms=1.-smoothstep(armW*.3,armW,dArm);
+            float centreW=mix(.05,.018,smoothstep(0.,.28,alongVw))*uRes.x;
+            float centre=(1.-smoothstep(centreW*.1,centreW,abs(acrossPx)))*.8;
+            float fillW=armLine+armW*.75;
+            float fill=(1.-smoothstep(fillW*.15,fillW,abs(acrossPx)))*(1.-smoothstep(.05,.16,alongVw));
+            float field=max(arms,max(centre,fill));
+            field*=smoothstep(-.012,.006,alongVw);
+            vec2 adv=vec2(acrossPx,alongPx-uTime*46.);
+            float n1=noise(adv*.01);
+            float n2=noise(adv*.022+3.7);
+            float n3=noise(adv*.042+8.1);
+            float n=n1*.5+n2*.32+n3*.18;
+            float holes=smoothstep(.2,.7,n);
+            float foam=field*mix(.7,1.,holes);
+            float up=smoothstep(0.,.055,alongVw);
+            float down=1.-smoothstep(.055,max(reach,.06),alongVw);
+            float fall=mix(.78,.86,up)*mix(1.,down,step(.055,alongVw));
+            fall*=1.-smoothstep(max(reach-.04,0.),reach,alongVw);
+            float crestW=smoothstep(-.55,.35,crest);
+            float amt=foam*fall;
+            vec3 foamCol=mix(col,vec3(.995,1.,1.),mix(.74,1.,crestW));
+            col=mix(col,foamCol,clamp(amt,0.,1.));
+          }
+        }
+      }
+    }
     float belowPx=(uv.y-h)*uRes.y;
     float hazeW=24.*px;
     vec3 hazeC=vec3(232.,244.,252.)/255.;

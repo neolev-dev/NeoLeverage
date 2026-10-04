@@ -48,7 +48,6 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   const fleet = root.querySelector<HTMLElement>("[data-fleet]");
   const copy = root.querySelector<HTMLElement>("[data-copy]");
   const gulls = [...root.querySelectorAll<HTMLElement>(".gull")];
-  const wake = root.querySelector<SVGSVGElement>("[data-wake]");
   const bow = root.querySelector<SVGElement>("[data-bow]");
   const drops = [...root.querySelectorAll<SVGCircleElement>("[data-drop]")];
   const divider = root.querySelector<HTMLElement>("[data-divider]");
@@ -103,19 +102,18 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     });
   };
 
-  const placeWake = (scale: number) => {
+  const projectBoat = (x: number, y: number): [number, number] | null => {
     const svg = boat?.querySelector("svg");
-    if (!wake || !svg) return;
-    const pt = svg.createSVGPoint();
-    pt.x = 44;
-    pt.y = 432;
+    if (!svg) return null;
     const ctm = svg.getScreenCTM();
-    if (!ctm) return;
+    if (!ctm) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = x;
+    pt.y = y;
     const p = pt.matrixTransform(ctm);
     const host = root.getBoundingClientRect();
-    wake.style.left = `${p.x - host.left}px`;
-    wake.style.top = `${p.y - host.top}px`;
-    wake.style.transform = `translate(-80.645%, -50%) scaleX(${scale})`;
+    if (host.width < 1 || host.height < 1) return null;
+    return [(p.x - host.left) / host.width, (p.y - host.top) / host.height];
   };
 
   if (tier === "0") {
@@ -130,7 +128,6 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       drop.style.opacity = "0";
     });
     const show = () => {
-      placeWake(1);
       placeScene();
     };
     show();
@@ -140,7 +137,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     return;
   }
 
-  const motion = { wind: 0, front: 0, sail: 0, surge: 0, scroll: 0, nudge: 0 };
+  const motion = { wind: 0, front: 0, sail: 0, surge: 0, scroll: 0, nudge: 0, wake: 0 };
   const clock = { intro: 0, flow: 0, vel: 0, last: performance.now(), hidden: false, away: false, pointer: 0 };
   let raf = 0;
   let frame = (_now: number) => {};
@@ -153,8 +150,8 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const heelU = clock.intro >= 5 ? 1 : span <= 0 ? 0 : lever(span);
     const slide = span * span * (3 - 2 * span);
     const back = (1 - slide) * 3;
+    motion.wake = slide;
     boat.style.transform = `translate3d(calc(-50% - ${back}vw), 0px, 0) rotate(${heelU * 8}deg)`;
-    placeWake(slide);
     if (bow) bow.style.opacity = String(span <= 0 ? 0 : Math.min(1, span / 0.4));
     const gullU = Math.min(1, clock.intro / 5);
     gulls.forEach((gull, index) => {
@@ -362,7 +359,13 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       gl.uniform1f(u("uSunEl"), ((14 + sunLift) * Math.PI) / 180);
       gl.uniform4f(u("uShip"), ship[0] ?? 0.64, ship[1] ?? 0.26, ship[2] ?? 0.24, ship[3] ?? 0.43);
       gl.uniform1f(u("uSail"), motion.sail);
-      gl.uniform1f(u("uWake"), motion.sail * (0.55 + motion.surge * 0.45));
+      gl.uniform1f(u("uWake"), motion.wake);
+      const stern = projectBoat(44, 432) ?? (narrow ? [0.382, 0.726] : [0.593, 0.71]);
+      const bowPt = projectBoat(240, 442) ?? (narrow ? [0.78, 0.7] : [0.79, 0.68]);
+      gl.uniform2f(u("uStern"), stern[0], stern[1]);
+      gl.uniform2f(u("uBow"), bowPt[0], bowPt[1]);
+      gl.uniform1f(u("uYaw"), motion.nudge * 1.6);
+      gl.uniform1f(u("uBeam"), narrow ? 0.02 : 0.014);
       gl.uniform1f(u("uConverge"), converge);
       gl.uniform1f(u("uGlitter"), glitter);
       gl.uniform1f(u("uOct"), tier === "3" ? 5 : 3);

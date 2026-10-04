@@ -61,6 +61,19 @@ async function boot() {
     image.onerror = () => reject(new Error("lockup"));
     image.src = "/lockup.png";
   });
+  const boatUv = (svgX, svgY, w, h, narrow) => {
+    const height = (narrow ? 0.3725 : 0.515) * h;
+    const width = height * (340 / 460);
+    const cx = (narrow ? 0.6 : 0.68) * w;
+    const top = (narrow ? 0.3902 : 0.2464) * h;
+    const oy = top + 0.939 * height;
+    const lx = (svgX / 340 - 0.5) * width;
+    const ly = (svgY / 460 - 0.939) * height;
+    const rad = (8 * Math.PI) / 180;
+    const c = Math.cos(rad);
+    const s = Math.sin(rad);
+    return [(cx + lx * c - ly * s) / w, (oy + lx * s + ly * c) / h];
+  };
   const draw = (w, h, narrow) => {
     canvas.width = w;
     canvas.height = h;
@@ -71,6 +84,8 @@ async function boot() {
     const ship = narrow
       ? [0.58, 0.43, 0.42, 0.42 * (w / h) * (460 / 340)]
       : [0.64, 0.26, 0.43 * (h / w) * (340 / 460), 0.43];
+    const stern = boatUv(44, 432, w, h, narrow);
+    const bow = boatUv(240, 442, w, h, narrow);
     gl.uniform2f(u("uRes"), w, h);
     gl.uniform1f(u("uTime"), 5);
     gl.uniform1f(u("uWind"), 1);
@@ -80,7 +95,11 @@ async function boot() {
     gl.uniform1f(u("uSunEl"), (14 * Math.PI) / 180);
     gl.uniform4f(u("uShip"), ship[0], ship[1], ship[2], ship[3]);
     gl.uniform1f(u("uSail"), 1);
-    gl.uniform1f(u("uWake"), 0.85);
+    gl.uniform1f(u("uWake"), 1);
+    gl.uniform2f(u("uStern"), stern[0], stern[1]);
+    gl.uniform2f(u("uBow"), bow[0], bow[1]);
+    gl.uniform1f(u("uYaw"), 0);
+    gl.uniform1f(u("uBeam"), narrow ? 0.02 : 0.014);
     gl.uniform1f(u("uConverge"), 0);
     gl.uniform1f(u("uGlitter"), 1);
     gl.uniform1f(u("uOct"), 5);

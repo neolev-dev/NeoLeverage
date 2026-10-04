@@ -537,18 +537,6 @@ html[data-tier="1"] .mv-sky,
   opacity: 0.35;
   filter: blur(8px);
 }
-.wake-layer {
-  position: absolute;
-  z-index: 1;
-  width: 43.4vw;
-  height: calc(43.4vw * 68 / 124);
-  left: 0;
-  top: 0;
-  overflow: visible;
-  pointer-events: none;
-  transform-origin: 80.645% 50%;
-  transform: translate(-80.645%, -50%) scaleX(0);
-}
 .hull { fill: url("#hull-form"); }
 .waterline { fill: none; stroke: #0f5a7a; stroke-width: 1.1; stroke-linecap: round; opacity: 0.28; }
 .waterline-hi { fill: none; stroke: none; }
