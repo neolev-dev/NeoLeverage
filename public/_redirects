@@ -1,0 +1,6 @@
+# Host-level www and apex redirects are configured on Cloudflare after approval.
+# Keep existing paths. Area anchors on /services (#cr #ma #ai) stay as fragment ids.
+
+/services/cr /services#cr 301
+/services/ma /services#ma 301
+/services/ai /services#ai 301

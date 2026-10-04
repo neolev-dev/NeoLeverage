@@ -1,0 +1,91 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const settings = content.settings;
+const title = locale === "ja"
+  ? "会社紹介｜NeoLeverage株式会社（ネオレバレッジ）"
+  : "We Are | NeoLeverage Inc.";
+const description = locale === "ja"
+  ? "経験と舵取りで、追い風をつくる。NeoLeverage株式会社の考え方、会社概要、福岡と東京の拠点。"
+  : "Creating tailwinds through experience and direction. About NeoLeverage Inc., with offices in Fukuoka and Tokyo.";
+const path = "/we-are";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.weAre, href: localePath(locale, path) },
+];
+const jsonLd = graph([
+  ...organizationGraph(settings, locale),
+  pageNode({ canonical, locale, type: "AboutPage", name: title, description, about: true, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+]);
+const dos = locale === "ja"
+  ? ["PM / ディレクション / 制作", "横断的な設計", "実行と改善", "AI活用の設計・支援"]
+  : ["PM / Direction / Production", "Cross-functional design", "Execution and optimization", "AI strategy and implementation"];
+const donts = locale === "ja"
+  ? ["業界が浅いスタッフのみで完結", "監修なしのAI生成", "再現性のない制作体制", "パッケージ販売"]
+  : ["Handled only by junior staff", "AI-generated without expert oversight", "Non-repeatable production processes", "Package-based offerings"];
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <Breadcrumb items={crumbs} />
+    <p class="kicker">We Are NeoLeverage</p>
+    <h1>{copy.experienceTitle}</h1>
+    <div class="prose">
+      {locale === "ja" ? (
+        <>
+          <p>クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。</p>
+          <p>それぞれが影響し合い、価値をレバレッジする。</p>
+          <p>私たちは、Web制作・マーケティング領域において、企画・設計から制作、運用、改善まで、20年以上にわたり現場で実務を積み重ねてきました。</p>
+          <p>大手広告代理店・大手制作会社での実務と、10年以上にわたるWeb制作会社の経営経験をもとに、企画から制作・運用まで一貫して支援します。</p>
+          <p>NeoLeverage株式会社は、AIの進化によって、Web創世記を思わせるスピードで変化し続けるこの業界において、その経験を、より本質的なかたちで活かすために立ち上げた組織です。</p>
+        </>
+      ) : (
+        <>
+          <p>We don’t treat creative, marketing, and technology as separate.</p>
+          <p>They influence one another—leveraging value together.</p>
+          <p>We have over 20 years of hands-on experience in web production and marketing, covering everything from planning and design to execution, operations, and optimization.</p>
+          <p>The work draws on practice at major advertising agencies and production companies, and on more than ten years of running a web production company. Planning, production, and operations stay in one line.</p>
+          <p>NeoLeverage was founded to apply that experience in a more essential way, in an industry evolving at a pace reminiscent of the early days of the web—driven by AI.</p>
+        </>
+      )}
+    </div>
+    <div class="do-grid" style="margin-top:2rem">
+      <article class="panel"><h2>{copy.do}</h2><ul>{dos.map((item) => <li>{item}</li>)}</ul></article>
+      <article class="panel"><h2>{copy.dont}</h2><ul>{donts.map((item) => <li class="dont-item"><s>{item}</s></li>)}</ul></article>
+    </div>
+    <section class="section">
+      <h2>{locale === "ja" ? "会社概要" : "Company"}</h2>
+      <dl class="tool-table">
+        <div class="tool-row"><dt>{copy.companyName}</dt><dd>{locale === "ja" ? "NeoLeverage株式会社（ネオレバレッジ）" : "NeoLeverage Inc."}</dd></div>
+        <div class="tool-row"><dt>{copy.established}</dt><dd>{locale === "ja" ? "2025年10月6日" : "October 6, 2025"}</dd></div>
+        <div class="tool-row"><dt>{locale === "ja" ? "代表取締役" : "Representative"}</dt><dd>{copy.representativeNote}</dd></div>
+      </dl>
+      <h3>{copy.offices}</h3>
+      {settings.offices.map((office) => (
+        <p>
+          <strong>{locale === "ja" ? office.name : office.name_en}</strong>
+          {office.is_headquarters ? ` (${copy.hq})` : ""}
+          <br />
+          {locale === "ja" ? `〒${office.postal_code} ${office.address_region}${office.address_locality}${office.street_address}` : office.address_en}
+        </p>
+      ))}
+      <h3>{copy.business}</h3>
+      <ul>{(locale === "ja" ? settings.business_summary_ja : settings.business_summary_en).map((item) => <li>{item}</li>)}</ul>
+    </section>
+    <section>
+      <h2>{locale === "ja" ? "これから" : "Toward the Future"}</h2>
+      <p>{locale === "ja" ? "時代や技術は変わり続け、柔軟な発想と実行力が重要な時代。追い風を読み、活かし、進む。そのためのパートナーでありたいと考えています。" : "In a time of constant change, shaped by evolving technology, flexible thinking and execution matter more than ever. We read the tailwinds, leverage them, and move forward."}</p>
+    </section>
+  </div>
+</BaseLayout>

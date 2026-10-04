@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props {
+  locale: Locale;
+  slug: "privacy" | "editorial-policy";
+}
+
+const { locale, slug } = Astro.props;
+const content = await getContent();
+const page = content.pages.find((item) => item.slug === slug);
+if (!page) throw new Error(slug);
+const copy = t(locale);
+const ja = locale === "ja";
+const label = ja ? page.seo_ja.breadcrumb_label || page.title_ja : page.seo_en.breadcrumb_label || page.title_en;
+const title = `${label}${ja ? "｜NeoLeverage株式会社" : " | NeoLeverage Inc."}`;
+const description = ja ? page.seo_ja.seo_description : page.seo_en.seo_description;
+const path = `/${slug}`;
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: label, href: localePath(locale, path) },
+];
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+]);
+const sections = ja ? page.sections_ja : page.sections_en;
+const note = ja ? page.revised_note_ja : page.revised_note_en;
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page prose">
+    <Breadcrumb items={crumbs} />
+    <h1>{ja ? page.title_ja : page.title_en}</h1>
+    {note && <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{note}</p>}
+    {slug === "editorial-policy" && <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{ja ? copy.editorialPrototype : copy.editorialPrototype}</p>}
+    {sections.map((section) => (
+      <section>
+        <h2>{section.heading}</h2>
+        {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      </section>
+    ))}
+  </div>
+</BaseLayout>

@@ -1,0 +1,12 @@
+---
+import TagPage from "../../../../views/TagPage.astro";
+import { getContent } from "../../../../lib/microcms/client";
+
+export async function getStaticPaths() {
+  const content = await getContent();
+  return content.tags.map((item) => ({ params: { slug: item.slug } }));
+}
+
+const { slug } = Astro.params;
+---
+<TagPage locale="en" slug={slug ?? ""} />

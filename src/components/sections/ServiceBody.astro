@@ -1,0 +1,84 @@
+---
+import { localePath, type Locale } from "../../lib/i18n/locale";
+import type { UI } from "../../lib/i18n/ui";
+import type { Faq, Service } from "../../lib/microcms/types";
+
+interface Props {
+  service: Service;
+  locale: Locale;
+  copy: UI;
+  related: Service[];
+  faqs: Faq[];
+  quote: string;
+  areaName: string;
+}
+
+const { service, locale, copy, related, faqs, quote, areaName } = Astro.props;
+const ja = locale === "ja";
+---
+
+<p class="kicker">{areaName}</p>
+<h1>{ja ? service.name_ja : service.name_en}</h1>
+<p class="lead">{ja ? service.catch_ja : service.catch_en}</p>
+{service.prototype_copy && (
+  <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{ja ? copy.servicePrototype : copy.enOnlyBanner}</p>
+)}
+<p>{ja ? service.summary_ja : service.summary_en}</p>
+
+<section class="section">
+  <h2>{ja ? "このサービスの追い風" : "The tailwind in this service"}</h2>
+  <p class="lead">{ja ? service.tailwind_benefit_ja : service.tailwind_benefit_en}</p>
+</section>
+<section>
+  <h2>{copy.audience}</h2>
+  <ul>{(ja ? service.audience_ja : service.audience_en).map((item) => <li>{item}</li>)}</ul>
+</section>
+<section class="section">
+  <h2>{copy.problems}</h2>
+  <ul>{(ja ? service.problems_ja : service.problems_en).map((item) => <li>{item}</li>)}</ul>
+</section>
+<section>
+  <h2>{copy.solution}</h2>
+  <p>{ja ? service.solution_ja : service.solution_en}</p>
+</section>
+<section class="section">
+  <h2>{copy.deliverables}</h2>
+  <p>{copy.scopeNote}</p>
+  <ul class="card-grid">
+    {(ja ? service.deliverables_ja : service.deliverables_en).map((item) => (
+      <li class="panel"><h3>{item.name}</h3><p>{item.description}</p></li>
+    ))}
+  </ul>
+</section>
+<section>
+  <h2>{copy.process}</h2>
+  <p class="meta">{copy.timelineLabel}</p>
+  <p>{ja ? service.timeline_note_ja : service.timeline_note_en}</p>
+  <ol>
+    {(ja ? service.process_ja : service.process_en).map((step) => <li><strong>{step.name}</strong> — {step.description}</li>)}
+  </ol>
+</section>
+{related.length > 0 && (
+  <section class="section">
+    <h2>{copy.related}</h2>
+    <ul>
+      {related.map((item) => <li><a href={localePath(locale, `/services/${item.slug}`)}>{ja ? item.name_ja : item.name_en}</a></li>)}
+    </ul>
+  </section>
+)}
+<section class="section">
+  <h2>{ja ? "料金について" : "Fees"}</h2>
+  <p>{quote}</p>
+</section>
+{faqs.length > 0 && (
+  <section>
+    <h2>{copy.faq}</h2>
+    {faqs.map((faq) => (
+      <article class="panel" style="margin-bottom:0.8rem">
+        <h3>{ja ? faq.question_ja : faq.question_en}</h3>
+        <p>{ja ? faq.answer_ja : faq.answer_en}</p>
+      </article>
+    ))}
+  </section>
+)}
+<p><a class="btn btn-accent" href={`${localePath(locale, "/contact")}?topic=${service.slug === "photo-sns-video" ? "photo-sns-video" : service.slug === "ai-automation" ? "ai-automation" : service.area === "marketing" ? "marketing" : "production"}`}>{copy.askService}</a></p>

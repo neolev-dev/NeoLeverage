@@ -1,0 +1,175 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MainVisual from "../components/brand/MainVisual.astro";
+import { getContent } from "../lib/microcms/client";
+import { localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { absoluteUrl } from "../lib/i18n/locale";
+import { SITE } from "../lib/site";
+import { graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const title = locale === "ja"
+  ? "Web制作・マーケティング・AI開発で企業の成長を支援｜NeoLeverage株式会社（ネオレバレッジ）"
+  : "Supporting Business Growth through Web Development, Marketing, and AI | NeoLeverage Inc.";
+const description = locale === "ja" ? content.settings.description_ja : content.settings.description_en;
+const canonical = absoluteUrl(localePath(locale, "/"));
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, about: true }),
+]);
+const areas = [...content.areas].sort((a, b) => a.order - b.order);
+const focus = content.services.filter((item) => item.is_focus);
+const notices = [...content.notices].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+const insights = [...content.insights].slice(0, 3);
+const dos = locale === "ja"
+  ? ["PM / ディレクション / 制作", "横断的な設計", "実行と改善", "AI活用の設計・支援"]
+  : ["PM / Direction / Production", "Cross-functional design", "Execution and optimization", "AI strategy and implementation"];
+const donts = locale === "ja"
+  ? ["業界が浅いスタッフのみで完結", "監修なしのAI生成", "再現性のない制作体制", "パッケージ販売"]
+  : ["Handled only by junior staff", "AI-generated without expert oversight", "Non-repeatable production processes", "Package-based offerings"];
+const flow = locale === "ja"
+  ? [["01 Plan", "要件と情報の順序を、目的から置きます。"], ["02 Make", "デザイン、構築、映像を、同じ意図で作ります。"], ["03 Run", "広告、検索、自動化で、公開のあとまで見ます。"]]
+  : [["01 Plan", "Requirements and the order of information, set from the purpose."], ["02 Make", "Design, build, and video, made with the same intent."], ["03 Run", "Advertising, search, and automation, after launch as well."]];
+---
+
+<BaseLayout locale={locale} title={title} description={description} path="/" home jsonLd={jsonLd} ogImage={absoluteUrl(SITE.defaultOgPath)}>
+  <MainVisual locale={locale} />
+  <div class="page page-wide">
+    <section class="section" id="values">
+      <div class="section-head" data-reveal>
+        <div>
+          <p class="kicker">Creative / Marketing / AI</p>
+          <h2>{copy.valuesTitle}</h2>
+        </div>
+      </div>
+      <ul class="card-grid">
+        {areas.map((area) => (
+          <li data-reveal>
+            <a class="card" href={`${localePath(locale, "/services")}#${area.anchor}`}>
+              <span class="meta">{area.catch_ja}</span>
+              <h3 class="en-label">{area.name_ja}</h3>
+              <p>{locale === "ja" ? area.lead_ja : area.lead_en}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section">
+      <div class="section-head" data-reveal>
+        <h2>{copy.flowTitle}</h2>
+      </div>
+      <div class="flow">
+        {flow.map(([name, text]) => (
+          <article data-reveal>
+            <strong>{name}</strong>
+            <p>{text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head" data-reveal>
+        <h2>{copy.focusTitle}</h2>
+      </div>
+      <div class="focus-grid">
+        {focus.map((item, index) => (
+          <a class:list={["card", index === 0 && "focus-main"]} href={localePath(locale, `/services/${item.slug}`)} data-reveal>
+            <span class="meta">{index === 0 ? "Focus" : "Focus"}</span>
+            <h3>{locale === "ja" ? item.name_ja : item.name_en}</h3>
+            <p>{locale === "ja" ? item.summary_ja : item.summary_en}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="split">
+        <div data-reveal>
+          <p class="kicker">We Are</p>
+          <h2>{copy.doDontTitle}</h2>
+          <p>{locale === "ja" ? "クリエイティブ・マーケティング・テクノロジーを、私たちは分けて考えません。それぞれが影響し合い、価値をレバレッジする。" : "We don’t treat creative, marketing, and technology as separate. They influence one another—leveraging value together."}</p>
+          <p><a href={localePath(locale, "/we-are")}>{copy.weAre}</a></p>
+        </div>
+        <div class="do-grid">
+          <article class="panel" data-reveal>
+            <h3>{copy.do}</h3>
+            <ul>{dos.map((item) => <li>{item}</li>)}</ul>
+          </article>
+          <article class="panel" data-reveal>
+            <h3>{copy.dont}</h3>
+            <ul>{donts.map((item) => <li class="dont-item"><s>{item}</s></li>)}</ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Trends</p>
+          <h2>{copy.trendsLead}</h2>
+        </div>
+        <a href={localePath(locale, "/trends")}>{copy.more}</a>
+      </div>
+      <ul class="card-grid">
+        {insights.map((item) => (
+          <li>
+            <a class="card" href={localePath(locale, `/trends/${item.slug}`)}>
+              <span class="meta">{item.published_at}</span>
+              <h3>{locale === "ja" ? item.title_ja : item.title_en}</h3>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Notice</p>
+          <h2>{copy.notice}</h2>
+        </div>
+        <a href={localePath(locale, "/notice")}>{copy.more}</a>
+      </div>
+      <ul class="notice-list">
+        {notices.filter((item) => locale === "ja" || item.title_en).map((item) => (
+          <li class="tool-row">
+            <span>{item.date}</span>
+            <a href={localePath(locale, `/notice/${item.slug}`)}>{locale === "ja" ? item.title_ja : item.title_en}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>{copy.worksTitle}</h2>
+      <p class="lead">{copy.worksLead}</p>
+      <div class="tool-table">
+        {content.tools.filter((row) => row.group === "works").map((row) => (
+          <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
+        ))}
+      </div>
+      <h2 style="margin-top:3rem">{copy.protoTitle}</h2>
+      <p class="lead">{copy.protoLead}</p>
+      <div class="tool-table">
+        {content.tools.filter((row) => row.group === "prototypes").map((row) => (
+          <div class="tool-row"><span>{locale === "ja" ? row.label_ja : row.label_en}</span><strong>{row.items}</strong></div>
+        ))}
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div>
+        <h2>{copy.ctaTitle}</h2>
+        <p>{copy.ctaBody}</p>
+      </div>
+      <a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a>
+    </section>
+  </div>
+</BaseLayout>

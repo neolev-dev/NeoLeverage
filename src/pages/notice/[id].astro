@@ -1,0 +1,12 @@
+---
+import NoticeArticle from "../../views/NoticeArticle.astro";
+import { getContent } from "../../lib/microcms/client";
+
+export async function getStaticPaths() {
+  const content = await getContent();
+  return content.notices.map((item) => ({ params: { id: item.slug } }));
+}
+
+const { id } = Astro.params;
+---
+<NoticeArticle locale="ja" slug={id ?? ""} />

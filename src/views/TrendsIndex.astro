@@ -1,0 +1,62 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale; category?: string }
+const { locale, category } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const ja = locale === "ja";
+const current = content.categories.find((item) => item.slug === category);
+const title = current
+  ? `${ja ? current.name_ja : current.name_en}${ja ? "｜NeoLeverage株式会社" : " | NeoLeverage Inc."}`
+  : ja ? "Webクリエイティブ業界の旬な情報メディア｜Trends｜NeoLeverage株式会社" : "Trends | NeoLeverage Inc.";
+const description = current
+  ? (ja ? current.description_ja : current.description_en)
+  : ja
+    ? "Trendsでは、AI・クリエイティブ・マーケティング・テックを中心に、Web業界の動きを扱います。この試作は現行サイトの見出しの一部だけを載せています。"
+    : "Trends covers AI, creative, marketing, and technology. This prototype includes only a sample of headlines from the current site.";
+const path = current ? `/trends/category/${current.slug}` : "/trends";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: "Trends", href: localePath(locale, "/trends") },
+  ...(current ? [{ name: ja ? current.name_ja : current.name_en, href: localePath(locale, path) }] : []),
+];
+const items = content.insights.filter((item) => !category || item.category === category);
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+]);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <Breadcrumb items={crumbs} />
+    <p class="kicker">Trends</p>
+    <h1>{current ? (ja ? current.name_ja : current.name_en) : copy.trendsLead}</h1>
+    <p class="lead">{ja ? "Trendsでは、AI・クリエイティブ・マーケティング・テック関連の領域を中心に、Web業界で起きているニュースを取り上げています。" : "Trends follows news across AI, creative, marketing, and technology."}</p>
+    <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{ja ? "掲載は現行サイトの見出しと要約の一部です。169件の本文はまだ移行していません。" : "Only a sample of current headlines is here. The full archive is not migrated."}</p>
+    <nav aria-label={copy.categoryLead} style="display:flex;gap:0.8rem;flex-wrap:wrap;margin:1rem 0 2rem">
+      <a href={localePath(locale, "/trends")}>All</a>
+      {content.categories.map((item) => <a href={localePath(locale, `/trends/category/${item.slug}`)} aria-current={item.slug === category ? "page" : undefined}>{ja ? item.name_ja : item.name_en}</a>)}
+    </nav>
+    {items.length === 0 && <p>{copy.noResults}</p>}
+    <ul class="card-grid">
+      {items.map((item) => (
+        <li>
+          <a class="card" href={localePath(locale, `/trends/${item.slug}`)}>
+            <span class="meta">{item.published_at} / {item.category}</span>
+            <h2>{ja ? item.title_ja : item.title_en}</h2>
+            {ja && <p>{item.lead_ja}</p>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

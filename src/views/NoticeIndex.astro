@@ -1,0 +1,48 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { noticeHasEnglish } from "../lib/microcms/mock";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const ja = locale === "ja";
+const title = ja ? "お知らせ｜NeoLeverage株式会社" : "Notice | NeoLeverage Inc.";
+const description = ja
+  ? "NeoLeverage株式会社からのお知らせです。"
+  : "Notices from NeoLeverage Inc.";
+const path = "/notice";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.notice, href: localePath(locale, path) },
+];
+const items = [...content.notices]
+  .filter((item) => ja || noticeHasEnglish(item))
+  .sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+]);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <Breadcrumb items={crumbs} />
+    <h1>{ja ? "ネオレバレッジからのお知らせ" : "Notice"}</h1>
+    <ul class="notice-list">
+      {items.map((item) => (
+        <li class="tool-row">
+          <span>{item.date}</span>
+          <a href={localePath(locale, `/notice/${item.slug}`)}>{ja ? item.title_ja : item.title_en}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

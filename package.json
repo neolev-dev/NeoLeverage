@@ -1,0 +1,21 @@
+{
+  "name": "neoleverage",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/check-output.mjs",
+    "preview": "astro preview --host 0.0.0.0",
+    "check:output": "node scripts/check-output.mjs",
+    "test:contact": "node --experimental-strip-types scripts/test-contact.ts"
+  },
+  "dependencies": {
+    "astro": "^5.14.4",
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4",
+    "typescript": "^5.9.2"
+  }
+}

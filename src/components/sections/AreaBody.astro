@@ -1,0 +1,31 @@
+---
+import { localePath, type Locale } from "../../lib/i18n/locale";
+import type { UI } from "../../lib/i18n/ui";
+import type { Service, ServiceArea } from "../../lib/microcms/types";
+
+interface Props {
+  area: ServiceArea;
+  locale: Locale;
+  copy: UI;
+  services: Service[];
+}
+
+const { area, locale, copy, services } = Astro.props;
+const ja = locale === "ja";
+---
+
+<p class="kicker">{area.catch_ja}</p>
+<h1>{area.name_ja}</h1>
+<p class="lead">{ja ? area.lead_ja : area.lead_en}</p>
+<ul>{(ja ? area.capabilities_ja : area.capabilities_en).map((item) => <li>{item}</li>)}</ul>
+<ul class="card-grid">
+  {services.map((service) => (
+    <li>
+      <a class="card" href={localePath(locale, `/services/${service.slug}`)}>
+        <h3>{ja ? service.name_ja : service.name_en}</h3>
+        <p>{ja ? service.summary_ja : service.summary_en}</p>
+      </a>
+    </li>
+  ))}
+</ul>
+<p><a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a></p>

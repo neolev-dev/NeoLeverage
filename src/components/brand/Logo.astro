@@ -1,0 +1,29 @@
+---
+import mark from "../../assets/brand/mark.webp";
+import raw from "../../assets/brand/wordmark.svg?raw";
+
+interface Props {
+  tone?: "on-dark" | "on-light";
+  id?: string;
+}
+
+const { tone = "on-dark", id = "logo" } = Astro.props;
+const clip = `${id}-ring`;
+const svg = raw
+  .replace('id="mark-ring"', `id="${clip}"`)
+  .replace('url(#mark-ring)', `url(#${clip})`)
+  .replace(
+    "</svg>",
+    `<image href="${mark.src}" x="41.15" y="4.55" width="21.3" height="21.3" clip-path="url(#${clip})" preserveAspectRatio="xMidYMid slice" aria-hidden="true"/></svg>`,
+  )
+  .replace("<svg ", '<svg class="logo-svg" aria-hidden="true" ');
+---
+
+<span class:list={["logo", tone]} set:html={svg} />
+
+<style>
+  .logo { display: inline-flex; line-height: 0; }
+  .on-dark { color: #fff; }
+  .on-light { color: #141414; }
+  .logo :global(.logo-svg) { display: block; width: auto; height: 1.35rem; }
+</style>
