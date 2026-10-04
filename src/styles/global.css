@@ -506,7 +506,7 @@ html[data-tier="1"] .mv-sky,
   background-size: cover;
   background-position: center;
 }
-.mv-gl { z-index: 1; opacity: 0; transition: opacity 0.4s linear; }
+.mv-gl { z-index: 1; opacity: 0; transition: opacity 0.4s linear; image-rendering: auto; }
 .mv-gl.is-on { opacity: 1; }
 .mv-still { object-fit: cover; z-index: 1; }
 .mv-boat {
@@ -550,11 +550,10 @@ html[data-tier="1"] .mv-sky,
   pointer-events: none;
 }
 .hull { fill: url("#hull-form"); }
-.waterline { fill: none; stroke: #0f5a7a; stroke-width: 1.4; stroke-linecap: round; opacity: 0.45; }
-.waterline-hi { fill: none; stroke: #fff; stroke-width: 1.2; stroke-linecap: round; opacity: 0.7; }
+.waterline { fill: none; stroke: #0f5a7a; stroke-width: 1.1; stroke-linecap: round; opacity: 0.28; }
+.waterline-hi { fill: none; stroke: none; }
 .stripe { fill: none; stroke: #fe7f38; stroke-width: 2.2; stroke-linecap: round; }
-.mast, .boom { fill: none; stroke: #1a2a33; stroke-width: 1.6; stroke-linecap: round; }
-.spray path { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; }
+.mast-bar, .boom-bar, .mast-hi, .boom-hi { stroke: none; }
 .spray { opacity: 0.35; }
 .mv-boat.is-full .spray, .mv.is-settled .spray { opacity: 1; }
 [data-sail] { fill: url("#sail-camber"); fill-opacity: 1; }
@@ -636,7 +635,7 @@ html[data-tier="1"] .mv-sky,
 h1.mv-brand {
   margin: 0;
   color: #080808;
-  font-family: var(--nl-font-en);
+  font-family: "Outfit Display", "Outfit Fallback", var(--nl-font-en);
   font-size: clamp(3.25rem, 2.1rem + 2.4vw, 4.75rem);
   font-weight: 520;
   line-height: 0.94;

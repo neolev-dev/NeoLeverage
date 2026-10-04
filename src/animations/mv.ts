@@ -273,7 +273,8 @@ export async function bootMv(root: HTMLElement): Promise<void> {
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, tier === "3" ? 1.5 : 1) * (tier === "3" ? 1 : 0.75);
+      const cap = tier === "3" ? 2 : tier === "2" ? 1.5 : 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, cap);
       canvas.width = Math.max(2, Math.floor(rect.width * dpr));
       canvas.height = Math.max(2, Math.floor(rect.height * dpr));
       gl.viewport(0, 0, canvas.width, canvas.height);
@@ -315,7 +316,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       gl.uniform1f(u("uWake"), motion.sail * (0.55 + motion.surge * 0.45));
       gl.uniform1f(u("uConverge"), converge);
       gl.uniform1f(u("uGlitter"), glitter);
-      gl.uniform1f(u("uOct"), tier === "3" ? 4 : 2);
+      gl.uniform1f(u("uOct"), tier === "3" ? 5 : 3);
       gl.uniform1f(u("uHi"), hi);
       gl.uniform1f(u("uFade"), fade);
       gl.uniform1f(u("uExposure"), 0.4 + sunLift * 0.08);

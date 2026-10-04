@@ -1,4 +1,12 @@
 @font-face {
+  font-family: "Outfit Display";
+  src: url("/fonts/outfit-display.woff2") format("woff2");
+  font-weight: 300 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020, U+0046-0047, U+0054, U+0059, U+0061, U+0064-0065, U+0067-0069, U+006C, U+006E-006F, U+0072-0075, U+0077, U+0079;
+}
+@font-face {
   font-family: "Outfit";
   src: url("/fonts/outfit-latin.woff2") format("woff2");
   font-weight: 300 600;
@@ -17,7 +25,7 @@
 }
 @font-face {
   font-family: "Outfit Fallback";
-  src: local("Arial");
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica"), local("Roboto"), local("Liberation Sans"), local("Arimo"), local("Noto Sans");
   size-adjust: 104%;
   ascent-override: 92%;
   descent-override: 22%;

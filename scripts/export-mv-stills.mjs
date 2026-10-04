@@ -83,7 +83,7 @@ async function boot() {
     gl.uniform1f(u("uWake"), 0.85);
     gl.uniform1f(u("uConverge"), 0);
     gl.uniform1f(u("uGlitter"), 1);
-    gl.uniform1f(u("uOct"), 4);
+    gl.uniform1f(u("uOct"), 5);
     gl.uniform1f(u("uHi"), 1);
     gl.uniform1f(u("uFade"), 0);
     gl.uniform1f(u("uExposure"), 0.4);
