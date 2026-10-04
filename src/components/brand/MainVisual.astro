@@ -17,6 +17,42 @@ const jib = {
   half: "M168 88C236 146 262 252 228 356L174 364C214 258 196 148 168 88Z",
   full: "M168 78C260 140 312 248 258 362L174 372C228 260 204 146 168 78Z",
 };
+
+const wakeHash = (n: number) => {
+  const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+const wakeSlope = Math.tan((11.6 * Math.PI) / 180);
+
+function wakeFoam(sign: number, y0: number, spread0: number, count: number, seed: number) {
+  const bits: string[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const u = i / (count - 1);
+    const t = 1 - (1 - u) ** 1.8;
+    const x = 116 - t * 113 + (wakeHash(seed + i * 2.7) - 0.5) * 2.2;
+    const aft = Math.max(0, 100 - x);
+    const tuck = Math.max(0, x - 100);
+    const spread = spread0 * (x >= 100 ? 1.1 : 1.15 - (aft / 98) * 0.78);
+    const y =
+      sign * (y0 + aft * wakeSlope - tuck * (y0 / 22)) + (wakeHash(seed + i * 6.1) - 0.5) * spread * 2.4;
+    const shrink = (1 - t * 0.78) * (sign < 0 ? 0.62 : 1);
+    const rx = Math.max(0.28, (0.55 + wakeHash(seed + i * 1.7) * 2.1) * shrink);
+    const ry = Math.max(0.08, rx * (0.14 + wakeHash(seed + i * 3.3) * 0.12));
+    const peak = sign === 0 ? 0.22 : 0.7;
+    const floor = sign === 0 ? 0.06 : 0.16;
+    const near = x > 100 ? 0.7 : 1;
+    const alpha = Math.min(peak, (floor + wakeHash(seed + i * 8.3) * (peak - floor)) * (1 - t * 0.8) * near);
+    const roll = wakeHash(seed + i * 4.9);
+    const fill = roll > 0.8 ? "#b9d3e0" : roll > 0.45 ? "#e5f2f8" : "#ffffff";
+    if (x < 2 || x > 117 || alpha < 0.04) continue;
+    bits.push(
+      `<ellipse cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" rx="${rx.toFixed(2)}" ry="${ry.toFixed(2)}" fill="${fill}" opacity="${alpha.toFixed(2)}" />`,
+    );
+  }
+  return bits.join("");
+}
+
+const wakeSpecks = [wakeFoam(-1, 1.5, 1.35, 140, 4), wakeFoam(1, 1.8, 1.7, 100, 90), wakeFoam(0, 0, 0.45, 36, 170)].join("");
 ---
 
 <section class="mv" data-motion="MO-HOME-01" data-mv aria-label="Tailwinds For Your Growth">
@@ -53,31 +89,25 @@ const jib = {
       <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
     </span>
   </div>
-  <svg class="wake-layer" data-wake viewBox="0 -28 100 56" aria-hidden="true">
+  <svg class="wake-layer" data-wake viewBox="0 -34 124 68" aria-hidden="true">
     <defs>
-      <linearGradient id="mv-wake-along" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="2" y2="0">
-        <stop offset="0" stop-color="#ffffff" />
-        <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.92" />
-        <stop offset="0.78" stop-color="#ffffff" stop-opacity="0.55" />
+      <linearGradient id="mv-wake-fade" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="0" y2="0">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0" />
+        <stop offset="0.08" stop-color="#ffffff" stop-opacity="0.55" />
+        <stop offset="0.17" stop-color="#ffffff" stop-opacity="1" />
+        <stop offset="0.3" stop-color="#ffffff" stop-opacity="0.38" />
+        <stop offset="0.46" stop-color="#ffffff" stop-opacity="0.14" />
+        <stop offset="0.64" stop-color="#ffffff" stop-opacity="0.04" />
         <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
       </linearGradient>
-      <linearGradient id="mv-wake-crest" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#ffffff" />
-        <stop offset="0.5" stop-color="#ffffff" />
-        <stop offset="1" stop-color="#ffffff" stop-opacity="0.82" />
-      </linearGradient>
-      <filter id="mv-wake-line" filterUnits="userSpaceOnUse" x="-8" y="-36" width="116" height="80">
+      <filter id="mv-wake-soft" filterUnits="userSpaceOnUse" x="-4" y="-40" width="132" height="88">
         <feGaussianBlur stdDeviation="0.08" />
       </filter>
-      <mask id="mv-wake-x" maskUnits="userSpaceOnUse" x="-8" y="-36" width="116" height="80">
-        <rect x="-8" y="-36" width="116" height="80" fill="url(#mv-wake-along)" />
+      <mask id="mv-wake-x" maskUnits="userSpaceOnUse" x="-4" y="-40" width="132" height="88">
+        <rect x="-4" y="-40" width="132" height="88" fill="url(#mv-wake-fade)" />
       </mask>
     </defs>
-    <g mask="url(#mv-wake-x)" filter="url(#mv-wake-line)">
-      <path fill="url(#mv-wake-crest)" d="M100.00 -5.28L98.91 -5.41L97.82 -5.57L96.73 -5.76L95.64 -6.01L94.56 -6.30L93.47 -6.61L92.38 -6.89L91.29 -7.10L90.20 -7.25L89.11 -7.36L88.02 -7.46L86.93 -7.61L85.84 -7.85L84.76 -8.19L83.67 -8.60L82.58 -9.02L81.49 -9.37L80.40 -9.60L79.31 -9.69L78.22 -9.66L77.13 -9.58L76.04 -9.54L74.96 -9.62L73.87 -9.85L72.78 -10.23L71.69 -10.68L70.60 -11.11L69.51 -11.43L68.42 -11.61L67.33 -11.65L66.24 -11.62L65.16 -11.63L64.07 -11.78L62.98 -12.11L61.89 -12.62L60.80 -13.24L59.71 -13.86L58.62 -14.35L57.53 -14.64L56.44 -14.71L55.36 -14.62L54.27 -14.48L53.18 -14.40L52.09 -14.47L51.00 -14.73L49.91 -15.13L48.82 -15.57L47.73 -15.96L46.64 -16.19L45.56 -16.23L44.47 -16.13L43.38 -15.97L42.29 -15.87L41.20 -15.94L40.11 -16.22L39.02 -16.68L37.93 -17.26L36.84 -17.82L35.76 -18.27L34.67 -18.55L33.58 -18.65L32.49 -18.63L31.40 -18.58L30.31 -18.62L29.22 -18.78L28.13 -19.08L27.04 -19.48L25.96 -19.89L24.87 -20.22L23.78 -20.43L22.69 -20.49L21.60 -20.46L20.51 -20.41L19.42 -20.41L18.33 -20.52L17.24 -20.76L16.16 -21.11L15.07 -21.52L13.98 -21.91L12.89 -22.23L11.80 -22.47L10.71 -22.64L9.62 -22.77L8.53 -22.92L7.44 -23.10L6.36 -23.34L5.27 -23.62L4.18 -23.91L3.09 -24.18L2.00 -24.42L2.00 -23.97L3.09 -23.78L4.18 -23.59L5.27 -23.38L6.36 -23.13L7.44 -22.85L8.53 -22.55L9.62 -22.24L10.71 -21.93L11.80 -21.64L12.89 -21.40L13.98 -21.20L15.07 -21.03L16.16 -20.89L17.24 -20.74L18.33 -20.56L19.42 -20.33L20.51 -20.03L21.60 -19.67L22.69 -19.27L23.78 -18.84L24.87 -18.44L25.96 -18.08L27.04 -17.81L28.13 -17.62L29.22 -17.53L30.31 -17.50L31.40 -17.50L32.49 -17.49L33.58 -17.42L34.67 -17.27L35.76 -17.02L36.84 -16.69L37.93 -16.30L39.02 -15.88L40.11 -15.50L41.20 -15.17L42.29 -14.93L43.38 -14.79L44.47 -14.73L45.56 -14.70L46.64 -14.68L47.73 -14.60L48.82 -14.43L49.91 -14.14L51.00 -13.75L52.09 -13.26L53.18 -12.73L54.27 -12.20L55.36 -11.72L56.44 -11.34L57.53 -11.07L58.62 -10.91L59.71 -10.84L60.80 -10.82L61.89 -10.80L62.98 -10.74L64.07 -10.61L65.16 -10.38L66.24 -10.07L67.33 -9.69L68.42 -9.29L69.51 -8.92L70.60 -8.59L71.69 -8.35L72.78 -8.19L73.87 -8.11L74.96 -8.07L76.04 -8.04L77.13 -7.98L78.22 -7.86L79.31 -7.66L80.40 -7.37L81.49 -7.02L82.58 -6.63L83.67 -6.22L84.76 -5.84L85.84 -5.50L86.93 -5.21L88.02 -4.98L89.11 -4.80L90.20 -4.63L91.29 -4.47L92.38 -4.29L93.47 -4.08L94.56 -3.84L95.64 -3.57L96.73 -3.29L97.82 -3.00L98.91 -2.73L100.00 -2.48Z" />
-      <path fill="url(#mv-wake-crest)" d="M100.00 2.69L98.91 2.91L97.82 3.08L96.73 3.22L95.64 3.36L94.56 3.54L93.47 3.78L92.38 4.10L91.29 4.45L90.20 4.81L89.11 5.13L88.02 5.37L86.93 5.52L85.84 5.63L84.76 5.74L83.67 5.91L82.58 6.19L81.49 6.58L80.40 7.03L79.31 7.48L78.22 7.85L77.13 8.07L76.04 8.14L74.96 8.08L73.87 7.98L72.78 7.94L71.69 8.03L70.60 8.29L69.51 8.69L68.42 9.16L67.33 9.60L66.24 9.93L65.16 10.09L64.07 10.12L62.98 10.10L61.89 10.13L60.80 10.31L59.71 10.68L58.62 11.24L57.53 11.91L56.44 12.55L55.36 13.06L54.27 13.36L53.18 13.45L52.09 13.39L51.00 13.29L49.91 13.27L48.82 13.41L47.73 13.73L46.64 14.19L45.56 14.69L44.47 15.11L43.38 15.37L42.29 15.45L41.20 15.40L40.11 15.30L39.02 15.27L37.93 15.41L36.84 15.75L35.76 16.27L34.67 16.88L33.58 17.46L32.49 17.93L31.40 18.22L30.31 18.34L29.22 18.36L28.13 18.37L27.04 18.45L25.96 18.65L24.87 18.99L23.78 19.39L22.69 19.80L21.60 20.13L20.51 20.33L19.42 20.41L18.33 20.41L17.24 20.40L16.16 20.45L15.07 20.60L13.98 20.87L12.89 21.22L11.80 21.61L10.71 21.98L9.62 22.29L8.53 22.54L7.44 22.73L6.36 22.90L5.27 23.08L4.18 23.31L3.09 23.57L2.00 23.85L2.00 24.32L3.09 24.07L4.18 23.81L5.27 23.53L6.36 23.25L7.44 22.99L8.53 22.77L9.62 22.58L10.71 22.44L11.80 22.34L12.89 22.24L13.98 22.13L15.07 22.00L16.16 21.81L17.24 21.57L18.33 21.28L19.42 20.97L20.51 20.65L21.60 20.37L22.69 20.13L23.78 19.97L24.87 19.87L25.96 19.82L27.04 19.79L28.13 19.74L29.22 19.63L30.31 19.44L31.40 19.15L32.49 18.77L33.58 18.32L34.67 17.84L35.76 17.38L36.84 16.99L37.93 16.69L39.02 16.49L40.11 16.39L41.20 16.37L42.29 16.37L43.38 16.35L44.47 16.27L45.56 16.10L46.64 15.83L47.73 15.48L48.82 15.09L49.91 14.69L51.00 14.34L52.09 14.08L53.18 13.91L54.27 13.86L55.36 13.89L56.44 13.96L57.53 14.02L58.62 14.03L59.71 13.94L60.80 13.74L61.89 13.43L62.98 13.02L64.07 12.57L65.16 12.11L66.24 11.70L67.33 11.37L68.42 11.12L69.51 10.96L70.60 10.87L71.69 10.81L72.78 10.74L73.87 10.62L74.96 10.43L76.04 10.17L77.13 9.84L78.22 9.47L79.31 9.10L80.40 8.75L81.49 8.46L82.58 8.23L83.67 8.08L84.76 7.99L85.84 7.93L86.93 7.87L88.02 7.79L89.11 7.67L90.20 7.50L91.29 7.28L92.38 7.02L93.47 6.74L94.56 6.46L95.64 6.19L96.73 5.95L97.82 5.74L98.91 5.54L100.00 5.35Z" />
-      <path fill="#ffffff" opacity="0.35" d="M100.00 -0.50L98.91 -0.45L97.82 -0.42L96.73 -0.39L95.64 -0.34L94.56 -0.26L93.47 -0.18L92.38 -0.11L91.29 -0.09L90.20 -0.15L89.11 -0.29L88.02 -0.50L86.93 -0.74L85.84 -0.96L84.76 -1.13L83.67 -1.22L82.58 -1.23L81.49 -1.17L80.40 -1.08L79.31 -1.00L78.22 -0.95L77.13 -0.95L76.04 -0.99L74.96 -1.03L73.87 -1.05L72.78 -1.02L71.69 -0.94L70.60 -0.84L69.51 -0.74L68.42 -0.69L67.33 -0.71L66.24 -0.82L65.16 -1.00L64.07 -1.20L62.98 -1.38L61.89 -1.49L60.80 -1.51L59.71 -1.42L58.62 -1.27L57.53 -1.09L56.44 -0.93L55.36 -0.81L54.27 -0.75L53.18 -0.73L52.09 -0.72L51.00 -0.68L49.91 -0.59L48.82 -0.45L47.73 -0.28L46.64 -0.12L45.56 -0.03L44.47 -0.03L43.38 -0.14L42.29 -0.34L41.20 -0.57L40.11 -0.79L39.02 -0.94L37.93 -0.99L36.84 -0.94L35.76 -0.82L34.67 -0.67L33.58 -0.56L32.49 -0.50L31.40 -0.51L30.31 -0.57L29.22 -0.63L28.13 -0.65L27.04 -0.62L25.96 -0.52L24.87 -0.39L23.78 -0.28L22.69 -0.24L21.60 -0.31L20.51 -0.50L19.42 -0.79L18.33 -1.12L17.24 -1.43L16.16 -1.65L15.07 -1.75L13.98 -1.73L12.89 -1.62L11.80 -1.48L10.71 -1.36L9.62 -1.29L8.53 -1.27L7.44 -1.28L6.36 -1.28L5.27 -1.22L4.18 -1.07L3.09 -0.84L2.00 -0.57L2.00 1.15L3.09 0.96L4.18 0.71L5.27 0.43L6.36 0.15L7.44 -0.08L8.53 -0.23L9.62 -0.30L10.71 -0.27L11.80 -0.16L12.89 0.02L13.98 0.25L15.07 0.48L16.16 0.69L17.24 0.87L18.33 0.99L19.42 1.07L20.51 1.10L21.60 1.11L22.69 1.11L23.78 1.10L24.87 1.11L25.96 1.12L27.04 1.13L28.13 1.14L29.22 1.13L30.31 1.09L31.40 1.01L32.49 0.91L33.58 0.78L34.67 0.66L35.76 0.56L36.84 0.49L37.93 0.49L39.02 0.55L40.11 0.67L41.20 0.84L42.29 1.04L43.38 1.23L44.47 1.39L45.56 1.50L46.64 1.53L47.73 1.48L48.82 1.35L49.91 1.17L51.00 0.96L52.09 0.74L53.18 0.55L54.27 0.40L55.36 0.30L56.44 0.26L57.53 0.28L58.62 0.34L59.71 0.42L60.80 0.50L61.89 0.58L62.98 0.65L64.07 0.69L65.16 0.72L66.24 0.74L67.33 0.76L68.42 0.78L69.51 0.80L70.60 0.84L71.69 0.87L72.78 0.88L73.87 0.87L74.96 0.84L76.04 0.76L77.13 0.66L78.22 0.53L79.31 0.40L80.40 0.28L81.49 0.20L82.58 0.18L83.67 0.22L84.76 0.33L85.84 0.51L86.93 0.72L88.02 0.97L89.11 1.21L90.20 1.41L91.29 1.57L92.38 1.67L93.47 1.70L94.56 1.66L95.64 1.56L96.73 1.43L97.82 1.27L98.91 1.12L100.00 0.98Z" />
-    </g>
+    <g mask="url(#mv-wake-x)" filter="url(#mv-wake-soft)" set:html={wakeSpecks} />
   </svg>
   <div class="mv-boat" data-boat>
     <div class="keel-shadow" aria-hidden="true"></div>
@@ -162,9 +192,9 @@ const jib = {
           <path class="sail-shade" fill="url(#sail-belly)" d={main.calm} data-half={main.half} data-full={main.full} />
           <path class="sail-shade" fill="url(#sail-belly)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
         </g>
-        <path class="mast-bar" fill="url(#mast-shade)" d="M167.75 392L172.25 392L171 8L169 8Z" />
-        <path class="mast-hi" fill="#eef3f6" opacity="0.5" d="M171.35 386L171.95 386L170.72 18L170.28 18Z" />
-        <line class="boom-bar" x1="170" y1="369" x2="66" y2="359" fill="none" stroke="#9AA4AB" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+        <path class="mast-bar" fill="url(#mast-shade)" d="M167.75 408L172.25 408L171 8L169 8Z" />
+        <path class="mast-hi" fill="#eef3f6" opacity="0.5" d="M171.35 400L171.95 400L170.72 18L170.28 18Z" />
+        <line class="boom-bar" x1="174" y1="408.58" x2="64" y2="398" fill="none" stroke="#9AA4AB" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
         <g class="drops" data-drops fill="#fff">
           <circle data-drop data-x="304" data-y="428" data-rise="6" data-delay="0" cx="304" cy="428" r="0.8" />
           <circle data-drop data-x="312" data-y="426" data-rise="8" data-delay="0.03" cx="312" cy="426" r="1.15" />

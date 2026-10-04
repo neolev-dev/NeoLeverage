@@ -107,15 +107,15 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const svg = boat?.querySelector("svg");
     if (!wake || !svg) return;
     const pt = svg.createSVGPoint();
-    pt.x = 30;
-    pt.y = 436;
+    pt.x = 168;
+    pt.y = 396;
     const ctm = svg.getScreenCTM();
     if (!ctm) return;
     const p = pt.matrixTransform(ctm);
     const host = root.getBoundingClientRect();
     wake.style.left = `${p.x - host.left}px`;
     wake.style.top = `${p.y - host.top}px`;
-    wake.style.transform = `translate(-100%, -50%) scaleX(${scale})`;
+    wake.style.transform = `translate(-80.645%, -50%) scaleX(${scale})`;
   };
 
   if (tier === "0") {
@@ -201,6 +201,24 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       if (full) tl.to(path, { morphSVG: full, duration: 0.9, ease: lever }, 2.1);
     });
     tl.to(motion, { sail: 1, front: 1, wind: 1, duration: 1.8, ease: "power1.inOut" }, 1.2);
+    const boom = root.querySelector<SVGLineElement>(".boom-bar");
+    const mast = root.querySelector<SVGPathElement>(".mast-bar");
+    if (boom) {
+      tl.fromTo(
+        boom,
+        { attr: { x1: 172, y1: 400, x2: 128, y2: 392 } },
+        { attr: { x1: 174, y1: 408.58, x2: 64, y2: 398 }, duration: 1.8, ease: "power1.inOut" },
+        1.2,
+      );
+    }
+    if (mast) {
+      tl.fromTo(
+        mast,
+        { attr: { d: "M167.75 400L172.25 400L171 8L169 8Z" } },
+        { attr: { d: "M167.75 408L172.25 408L171 8L169 8Z" }, duration: 1.8, ease: "power1.inOut" },
+        1.2,
+      );
+    }
     lines.forEach((line, index) => {
       const opacity = line.classList.contains("is-hot") ? 0.7 : 0.85;
       tl.fromTo(
