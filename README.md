@@ -56,8 +56,17 @@ Node.js 22 を想定しています。`npm install` 時に undici の engine 警
 - `src/lib/seo` … JSON-LD、サイトマップ対象
 - `src/animations` … トップの水面（案A）とスクロール演出
 - `functions/api/contact.ts` … 入力検証、Turnstile、Resend
-- `public/logo.png` … 八角形マークから作った 1200×1200（JSON-LD のロゴ）
-- 画面上の社名は `src/assets/brand/wordmark.svg`。マークは小さな画像
+- `public/logo.png` … マークを正八角形で切り、1200×1200 の透明地に 1000×1000 で中央配置（JSON-LD のロゴ）
+- 画面上の社名は `src/assets/brand/wordmark.svg`（`currentColor`）。マークは 256px の WebP を八角形でクリップ
+- トップの水面は `src/animations/mv-water.glsl`（WebGL2、だめなときは WebGL1）。Three.js は使いません
+- 静止画は `public/mv/`（満帆のシェーダー書き出し）。`?tier=0|1|2|3` で品質段階を固定、`?oct=1` は太陽フレアの八角形（通常はオフ）
+
+## モーションとライセンス
+
+GSAP 3（MorphSVG を含む）は Standard "no charge" license です。https://gsap.com/standard-license  
+この試作は公開サイトのアニメーションに使い、有料プラグインの別契約は不要です。MorphSVG は帆のシェイプだけに使い、ページ全体の JS 予算からは分けて測ります。
+
+`prefers-reduced-motion` は段階 0（静止画のみ）。`saveData`、WebGL 不可、SwiftShader / llvmpipe、`deviceMemory<=2`、`hardwareConcurrency<=4` は段階 1（静止画 + SVG の帆と風の線）。粗いポインタは段階 2、それ以外は段階 3 です。
 
 canonical は `/` と `/en/` だけ末尾スラッシュありです。ほかはスラッシュなしです。
 
@@ -68,7 +77,7 @@ canonical は `/` と `/en/` だけ末尾スラッシュありです。ほかは
 - Trends は現行の全件（日本語 169、英語 169）ではなくサンプルです。英語本文は未移行のため、英語の記事ページは noindex です
 - 記事画像の R2 パイプラインは繋がっていますが、公開 HTML にオブジェクトキーが無かったため、試作のアイキャッチはローカル生成の `src/assets/covers/horizon.png` です。CMS が R2 の URL を返せば、ビルド時に Astro が最適化します。将来のホストは `MEDIA_HOST`（例: `media.neolev.jp`）
 - 期間の週数、料金、事例、電話番号、メールアドレス、個人名は載せていません
-- OGP の既定画像 `public/og-default.png` はコードで描いた仮画像です
+- OGP の既定画像 `public/og-default.png` は、満帆の水面フレームにワードマークと Outfit の見出しを載せた試作です。写真ではありません
 - 英語のサービス文と編集方針は未校閲の訳です
 - お問い合わせは、Resend の鍵が無いあいだ送信を模擬します
 

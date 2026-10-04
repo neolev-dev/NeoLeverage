@@ -12,81 +12,80 @@ const headline = locale === "ja"
   ? "ネオレバレッジはテクノロジーと創造力を「時代のてこ」にして、企業と社会の未来を加速させるクリエイティブカンパニーです。"
   : "NeoLeverage is a creative company that leverages technology and creativity as “levers of the era” to accelerate the future of businesses and society.";
 const sub = locale === "ja" ? "成長に、追い風を。" : "Make future challenges lighter and more agile.";
+const main = {
+  calm: "M168 78C150 160 146 270 158 352L168 360C164 270 162 160 168 78Z",
+  half: "M168 78C96 150 78 270 108 352L168 360C156 270 160 160 168 78Z",
+  full: "M168 78C36 150 16 270 62 352L168 360C140 270 156 160 168 78Z",
+};
+const jib = {
+  calm: "M168 120C188 180 194 270 180 338L170 346C176 270 174 180 168 120Z",
+  half: "M168 120C214 175 236 270 214 338L170 346C186 270 178 180 168 120Z",
+  full: "M168 120C248 168 292 268 246 338L170 346C200 270 184 180 168 120Z",
+};
 ---
 
 <section class="mv" data-motion="MO-HOME-01" data-mv aria-label="Tailwinds For Your Growth">
-  <div class="mv-stage" aria-hidden="true">
-    <svg class="mv-poster" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+  <div class="mv-sky" aria-hidden="true"></div>
+  <canvas class="mv-gl" aria-hidden="true"></canvas>
+  <noscript>
+    <picture>
+      <source media="(max-width: 800px)" srcset="/mv/sp-1080.avif" type="image/avif" />
+      <source media="(max-width: 800px)" srcset="/mv/sp-1080.webp" type="image/webp" />
+      <source type="image/avif" srcset="/mv/pc-1280.avif 1280w, /mv/pc-1920.avif 1920w, /mv/pc-2560.avif 2560w" sizes="100vw" />
+      <img class="mv-still" src="/mv/pc-1280.webp" alt="" />
+    </picture>
+  </noscript>
+  <div class="mv-boat" data-boat>
+    <svg class="boat-svg" viewBox="0 0 320 460" aria-hidden="true">
       <defs>
-        <linearGradient id="mv-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#8fb6d8" />
-          <stop offset="0.55" stop-color="#f3d7a2" />
-          <stop offset="1" stop-color="#f8ead6" />
+        <linearGradient id="sail-light" x1="0" y1="0" x2="1" y2="0.2">
+          <stop offset="0" stop-color="#FFF6EA" />
+          <stop offset="0.65" stop-color="#FFF6EA" />
+          <stop offset="0.82" stop-color="#FFD194" />
+          <stop offset="1" stop-color="#FFB347" />
         </linearGradient>
-        <linearGradient id="mv-sea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#8eb4cc" />
-          <stop offset="0.45" stop-color="#3e7598" />
-          <stop offset="1" stop-color="#16384f" />
-        </linearGradient>
-        <radialGradient id="mv-sun" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stop-color="#fff1c4" />
-          <stop offset="0.45" stop-color="#ffc56a" stop-opacity="0.85" />
-          <stop offset="1" stop-color="#ffb347" stop-opacity="0" />
-        </radialGradient>
       </defs>
-      <rect width="1440" height="522" fill="url(#mv-sky)" />
-      <rect y="522" width="1440" height="378" fill="url(#mv-sea)" />
-      <circle cx="1040" cy="470" r="120" fill="url(#mv-sun)" />
-      <path d="M0 548 C 180 534 320 566 520 546 C 760 522 980 568 1440 534" fill="none" stroke="#fff6ea" stroke-width="1.4" opacity="0.75" />
-      <path d="M0 590 C 240 572 460 612 720 586 C 980 560 1180 604 1440 578" fill="none" stroke="#d5ebf6" stroke-width="1.1" opacity="0.45" />
-      <path d="M860 560 C 980 548 1120 572 1260 556" fill="none" stroke="#ffe1a8" stroke-width="1" opacity="0.55" />
-    </svg>
-    <canvas class="mv-gl"></canvas>
-    <svg class="mv-wind" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g class="winds" fill="none" stroke="#FE7F38" stroke-linecap="round" opacity="0.8">
-        <path class="wind-line" d="M-180 500 H 220" stroke-width="1.15" />
-        <path class="wind-line" d="M-260 528 H 160" stroke-width="0.9" opacity="0.7" />
-        <path class="wind-line" d="M-120 548 H 280" stroke-width="0.7" opacity="0.55" />
-        <path class="wind-line" d="M-220 572 H 90" stroke-width="0.8" opacity="0.45" />
+      <path class="hull" d="M40 378C80 370 130 374 168 372C230 368 280 356 304 348L294 388C240 406 120 410 48 396Z" />
+      <path class="hull-rim" d="M40 378C80 370 130 374 168 372C230 368 280 356 304 348L294 388C240 406 120 410 48 396Z" />
+      <path class="mast" d="M168 400V48" />
+      <g data-boom>
+        <path class="boom" d="M168 358L78 368" />
+      </g>
+      <g data-leech>
+        <path data-sail="main" fill="url(#sail-light)" d={main.calm} data-half={main.half} data-full={main.full} />
+        <path data-sail="jib" fill="url(#sail-light)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
+        <g class="battens" stroke="#0F1E29">
+          <path d="M168 168H118" />
+          <path d="M168 230H96" />
+          <path d="M168 292H108" />
+        </g>
+        <path class="luff" d="M170 86V352" />
       </g>
     </svg>
-    <svg class="mv-boat" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g transform="translate(860 250)"><g data-boat>
-        <path d="M40 292 C 90 286 120 312 180 316 C 250 320 300 292 360 286 L 342 308 C 270 332 120 332 58 308 Z" fill="#142833" />
-        <path d="M176 300 V 168" stroke="#142833" stroke-width="2" />
-        <path d="M176 286 H 292" stroke="#142833" stroke-width="1.6" />
-        <g class="sail-main">
-          <path d="M180 176 C 230 196 268 236 292 284 H 180 Z" fill="#f7f1e6" />
-        </g>
-        <g class="sail-jib">
-          <path d="M170 196 C 132 220 108 252 102 286 H 170 Z" fill="#fffaf3" />
-        </g>
-        <path d="M48 308 C 20 314 8 322 0 326" fill="none" stroke="#f4fbff" stroke-width="1.4" opacity="0.8" />
-      </g></g>
-    </svg>
+  </div>
+  <div class="mv-wind" aria-hidden="true">
+    <i class="wind-line" style="top:54%"></i>
+    <i class="wind-line" style="top:57.5%"></i>
+    <i class="wind-line" style="top:61%"></i>
   </div>
   <div class="mv-copy">
-    <p class="mv-brand">Tailwinds<br />For Your Growth</p>
-    <h1>{headline}</h1>
-    <p class="mv-sub">{sub}</p>
-    <div class="mv-actions">
+    <p class="mv-brand">
+      <span class="mv-line w500">Tailwinds</span>
+      <span class="mv-line"><span class="w300">For Your</span> <span class="w500">Growth</span></span>
+    </p>
+    <h1 class="mv-later">{headline}</h1>
+    <p class="mv-sub mv-later">{sub}</p>
+    <div class="mv-actions mv-later">
       <a class="btn btn-dark" href={localePath(locale, "/services")}>{copy.seeServices}</a>
       <a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a>
     </div>
   </div>
   <a class="mv-scroll" href="#values">{copy.scroll}<i></i></a>
   <button class="mv-pause" type="button" data-pause aria-pressed="false" data-pause-label={copy.pause} data-play-label={copy.play}>{copy.pause}</button>
+  <div class="mv-divider" data-divider data-motion="MO-HOME-03" aria-hidden="true"></div>
   <script>
     import { bootMv } from "../../animations/mv";
     const root = document.querySelector<HTMLElement>("[data-mv]");
-    const start = () => {
-      if (root) bootMv(root);
-    };
-    if ("requestIdleCallback" in window) window.requestIdleCallback(start);
-    else window.addEventListener("load", start, { once: true });
+    if (root) bootMv(root);
   </script>
 </section>
-
-<style>
-  .mv-boat { z-index: 1; }
-</style>

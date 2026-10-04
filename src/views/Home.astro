@@ -42,26 +42,32 @@ const flow = locale === "ja"
     <section class="section" id="values">
       <div class="section-head" data-reveal>
         <div>
-          <p class="kicker">Creative / Marketing / AI</p>
+          <p class="kicker">01 — Creative / Marketing / AI</p>
           <h2>{copy.valuesTitle}</h2>
         </div>
       </div>
-      <ul class="card-grid">
-        {areas.map((area) => (
-          <li data-reveal>
+      <div class="flow">
+        {areas.map((area, index) => (
+          <article data-reveal>
             <a class="card" href={`${localePath(locale, "/services")}#${area.anchor}`}>
-              <span class="meta">{area.catch_ja}</span>
-              <h3 class="en-label">{area.name_ja}</h3>
-              <p>{locale === "ja" ? area.lead_ja : area.lead_en}</p>
+              <span class="num">{String(index + 1).padStart(2, "0")}</span>
+              <span>
+                <span class="meta">{area.catch_ja}</span>
+                <h3 class="en-label">{area.name_ja}</h3>
+                <p>{locale === "ja" ? area.lead_ja : area.lead_en}</p>
+              </span>
             </a>
-          </li>
+          </article>
         ))}
-      </ul>
+      </div>
     </section>
 
     <section class="section">
       <div class="section-head" data-reveal>
-        <h2>{copy.flowTitle}</h2>
+        <div>
+          <p class="kicker">02</p>
+          <h2>{copy.flowTitle}</h2>
+        </div>
       </div>
       <div class="flow">
         {flow.map(([name, text]) => (
@@ -75,12 +81,15 @@ const flow = locale === "ja"
 
     <section class="section">
       <div class="section-head" data-reveal>
-        <h2>{copy.focusTitle}</h2>
+        <div>
+          <p class="kicker">03 — Focus</p>
+          <h2>{copy.focusTitle}</h2>
+        </div>
       </div>
       <div class="focus-grid">
         {focus.map((item, index) => (
           <a class:list={["card", index === 0 && "focus-main"]} href={localePath(locale, `/services/${item.slug}`)} data-reveal>
-            <span class="meta">{index === 0 ? "Focus" : "Focus"}</span>
+            <span class="num">{String(index + 1).padStart(2, "0")}</span>
             <h3>{locale === "ja" ? item.name_ja : item.name_en}</h3>
             <p>{locale === "ja" ? item.summary_ja : item.summary_en}</p>
           </a>

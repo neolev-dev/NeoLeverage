@@ -32,13 +32,19 @@ const jsonLd = graph([
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
-    <h1>{copy.faq}</h1>
-    {faqs.map((faq) => (
-      <article class="panel" style="margin-bottom:0.8rem">
-        <h2>{ja ? faq.question_ja : faq.question_en}</h2>
-        <p>{ja ? faq.answer_ja : faq.answer_en}</p>
-      </article>
-    ))}
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">FAQ</p>
+      <h1>{copy.faq}</h1>
+    </div>
+    <div class="faq-list">
+      {faqs.map((faq, index) => (
+        <article>
+          <p class="num">{String(index + 1).padStart(2, "0")}</p>
+          <h2>{ja ? faq.question_ja : faq.question_en}</h2>
+          <p>{ja ? faq.answer_ja : faq.answer_en}</p>
+        </article>
+      ))}
+    </div>
   </div>
 </BaseLayout>

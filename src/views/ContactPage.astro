@@ -32,10 +32,15 @@ const jsonLd = graph([
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
-    <h1>{copy.contact}</h1>
-    <p class="lead">{copy.ctaBody}</p>
-    <p>{ja ? content.settings.quote_policy_ja : content.settings.quote_policy_en}</p>
-    <ContactForm locale={locale} topic={topic} />
+    <div class="contact-layout">
+      <div class="mast">
+        <Breadcrumb items={crumbs} />
+        <p class="kicker">Contact</p>
+        <h1>{copy.contact}</h1>
+        <p class="lead">{copy.ctaBody}</p>
+        <p>{ja ? content.settings.quote_policy_ja : content.settings.quote_policy_en}</p>
+      </div>
+      <ContactForm locale={locale} topic={topic} />
+    </div>
   </div>
 </BaseLayout>

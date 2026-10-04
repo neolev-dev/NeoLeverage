@@ -44,11 +44,11 @@ const ja = locale === "ja";
 <section class="section">
   <h2>{copy.deliverables}</h2>
   <p>{copy.scopeNote}</p>
-  <ul class="card-grid">
+  <div class="tool-table">
     {(ja ? service.deliverables_ja : service.deliverables_en).map((item) => (
-      <li class="panel"><h3>{item.name}</h3><p>{item.description}</p></li>
+      <div class="tool-row"><span>{item.name}</span><strong>{item.description}</strong></div>
     ))}
-  </ul>
+  </div>
 </section>
 <section>
   <h2>{copy.process}</h2>

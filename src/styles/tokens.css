@@ -1,11 +1,11 @@
 :root {
-  --nl-color-neutral-950: #141414;
-  --nl-color-neutral-700: #3a3834;
-  --nl-color-neutral-500: #5c5852;
-  --nl-color-neutral-300: #c9c2b6;
-  --nl-color-neutral-200: #e4dfd6;
-  --nl-color-neutral-100: #f4f1eb;
-  --nl-color-neutral-50: #f7f5f1;
+  --nl-color-neutral-950: #080808;
+  --nl-color-neutral-700: #3a3a3a;
+  --nl-color-neutral-500: #5a5a5a;
+  --nl-color-neutral-300: #d5d5d5;
+  --nl-color-neutral-200: #e6e6e6;
+  --nl-color-neutral-100: #f9f8f7;
+  --nl-color-neutral-50: #f9f8f7;
   --nl-color-neutral-0: #ffffff;
   --nl-color-orange-500: #fe7f38;
   --nl-color-orange-700: #c4531c;
@@ -13,14 +13,14 @@
   --nl-color-sky-500: #7ea8db;
   --nl-color-sun-300: #ffdf57;
   --nl-color-sun-500: #ffb347;
-  --nl-color-ink-on-dark: #f7f4ee;
+  --nl-color-ink-on-dark: #f9f8f7;
 
   --nl-color-text-primary: var(--nl-color-neutral-950);
   --nl-color-text-secondary: var(--nl-color-neutral-500);
   --nl-color-text-inverse: var(--nl-color-ink-on-dark);
   --nl-color-bg-default: var(--nl-color-neutral-0);
   --nl-color-bg-subtle: var(--nl-color-neutral-100);
-  --nl-color-bg-inverse: #10202b;
+  --nl-color-bg-inverse: #080808;
   --nl-color-border-default: var(--nl-color-neutral-200);
   --nl-color-border-focus: var(--nl-color-neutral-950);
   --nl-color-accent-default: var(--nl-color-orange-500);
@@ -30,17 +30,18 @@
   --nl-font-en: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
   --nl-font-mono: "Fragment Mono", ui-monospace, "SFMono-Regular", monospace;
 
-  --nl-text-display: clamp(3.5rem, 8vw, 7.5rem);
-  --nl-text-h1: clamp(1.75rem, 3vw, 2.75rem);
-  --nl-text-h2: clamp(1.5rem, 2.4vw, 2.125rem);
-  --nl-text-h3: clamp(1.125rem, 1.5vw, 1.375rem);
-  --nl-text-body-lg: 1.125rem;
+  --nl-text-display: clamp(3.5rem, 7.2vw, 7rem);
+  --nl-text-h1: clamp(3.25rem, 6.2vw, 6rem);
+  --nl-text-h2: clamp(2.15rem, 3.6vw, 3.5rem);
+  --nl-text-h3: clamp(1.35rem, 1.6vw, 1.75rem);
+  --nl-text-body-lg: 1.25rem;
   --nl-text-body: 1rem;
-  --nl-text-caption: 0.8125rem;
+  --nl-text-small: 0.875rem;
+  --nl-text-caption: 0.75rem;
 
-  --nl-leading-tight: 1.15;
+  --nl-leading-tight: 1.05;
   --nl-leading-body: 1.75;
-  --nl-tracking-label: 0.14em;
+  --nl-tracking-label: 0.16em;
 
   --nl-space-1: 0.25rem;
   --nl-space-2: 0.5rem;
@@ -51,11 +52,11 @@
   --nl-space-7: 3rem;
   --nl-space-8: 4.5rem;
   --nl-space-9: 7rem;
-  --nl-space-section: clamp(4.5rem, 9vw, 8rem);
+  --nl-space-section: clamp(7.5rem, 12vw, 11rem);
 
-  --nl-layout-max: 72rem;
-  --nl-layout-wide: 90rem;
-  --nl-layout-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --nl-layout-max: 68rem;
+  --nl-layout-wide: 88rem;
+  --nl-layout-gutter: clamp(1.5rem, 4vw, 3.5rem);
 
   --nl-radius-sm: 0.375rem;
   --nl-radius-md: 0.75rem;

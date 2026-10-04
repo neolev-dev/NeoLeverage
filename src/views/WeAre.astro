@@ -38,9 +38,11 @@ const donts = locale === "ja"
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
-    <p class="kicker">We Are NeoLeverage</p>
-    <h1>{copy.experienceTitle}</h1>
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">We Are NeoLeverage</p>
+      <h1>{copy.experienceTitle}</h1>
+    </div>
     <div class="prose">
       {locale === "ja" ? (
         <>

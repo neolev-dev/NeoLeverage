@@ -43,7 +43,7 @@ export function bootSite(): void {
     if (event.key === "Escape") setOpen(false);
   });
 
-  if (document.documentElement.dataset.motion === "reduced") {
+  if (document.documentElement.dataset.tier === "0") {
     document.querySelectorAll(".dont-item").forEach((item) => item.classList.add("is-struck"));
     return;
   }
@@ -53,17 +53,15 @@ export function bootSite(): void {
       import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
         gsap.registerPlugin(ScrollTrigger);
         document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((element) => {
-          gsap.fromTo(
-            element,
-            { autoAlpha: 0, y: 24 },
-            {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.8,
-              ease: "power3.out",
-              scrollTrigger: { trigger: element, start: "top 88%", once: true },
-            },
-          );
+          if (element.getBoundingClientRect().top <= window.innerHeight * 0.92) return;
+          element.classList.add("is-pending");
+          gsap.to(element, {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: { trigger: element, start: "top 88%", once: true },
+          });
         });
         document.querySelectorAll<HTMLElement>(".dont-item").forEach((element) => {
           ScrollTrigger.create({

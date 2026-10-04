@@ -41,10 +41,12 @@ const areas = [...content.areas].sort((a, b) => a.order - b.order);
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
-    <p class="kicker">Services</p>
-    <h1>{locale === "ja" ? "3つの領域を「てこ」に、価値創出の流れをつくる。" : "Three areas, used as levers."}</h1>
-    <p class="lead">{locale === "ja" ? "ネオレバレッジは、クリエイティブ・マーケティング・テクノロジーを横断し、事業とプロダクトの成長を目的に、設計から実行まで一体で支援します。分業でなく統合し、掛け合わさることで、スピードと再現性のある成果を生み出します。" : "NeoLeverage works across creative, marketing, and technology, from design through execution. The areas can be commissioned alone. They do their real work together."}</p>
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">Services</p>
+      <h1>{locale === "ja" ? "3つの領域を「てこ」に、価値創出の流れをつくる。" : "Three areas, used as levers."}</h1>
+      <p class="lead">{locale === "ja" ? "ネオレバレッジは、クリエイティブ・マーケティング・テクノロジーを横断し、事業とプロダクトの成長を目的に、設計から実行まで一体で支援します。分業でなく統合し、掛け合わさることで、スピードと再現性のある成果を生み出します。" : "NeoLeverage works across creative, marketing, and technology, from design through execution. The areas can be commissioned alone. They do their real work together."}</p>
+    </div>
 
     {areas.map((area) => {
       const services = content.services.filter((service) => service.area === area.slug);

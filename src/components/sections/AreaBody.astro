@@ -19,11 +19,14 @@ const ja = locale === "ja";
 <p class="lead">{ja ? area.lead_ja : area.lead_en}</p>
 <ul>{(ja ? area.capabilities_ja : area.capabilities_en).map((item) => <li>{item}</li>)}</ul>
 <ul class="card-grid">
-  {services.map((service) => (
+  {services.map((service, index) => (
     <li>
       <a class="card" href={localePath(locale, `/services/${service.slug}`)}>
-        <h3>{ja ? service.name_ja : service.name_en}</h3>
-        <p>{ja ? service.summary_ja : service.summary_en}</p>
+        <span class="num">{String(index + 1).padStart(2, "0")}</span>
+        <span>
+          <h3>{ja ? service.name_ja : service.name_en}</h3>
+          <p>{ja ? service.summary_ja : service.summary_en}</p>
+        </span>
       </a>
     </li>
   ))}

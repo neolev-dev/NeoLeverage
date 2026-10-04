@@ -34,8 +34,11 @@ const jsonLd = graph([
 
 <BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
   <div class="page">
-    <Breadcrumb items={crumbs} />
-    <h1>{ja ? "ネオレバレッジからのお知らせ" : "Notice"}</h1>
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">Notice</p>
+      <h1>{ja ? "ネオレバレッジからのお知らせ" : "Notice"}</h1>
+    </div>
     <ul class="notice-list">
       {items.map((item) => (
         <li class="tool-row">
