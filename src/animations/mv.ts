@@ -55,7 +55,8 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   const spray = root.querySelector<HTMLElement>("[data-spray]");
   const gulls = [...root.querySelectorAll<HTMLElement>(".gull")];
   const divider = root.querySelector<HTMLElement>("[data-divider]");
-  const lines = [...root.querySelectorAll<HTMLElement>(".wind-line")];
+  const lines = [...root.querySelectorAll<HTMLElement>(".wind-trail")];
+  const reflect = root.querySelector<HTMLElement>(".boat-reflect");
   const sp = () => window.matchMedia("(max-width: 800px)").matches;
 
   const placeScene = () => {
@@ -63,11 +64,6 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const host = root.getBoundingClientRect();
     const box = copy.getBoundingClientRect();
     const narrow = host.width <= 800;
-    if (narrow && boat) {
-      boat.style.top = `${box.bottom - host.top + 20}px`;
-      boat.style.left = host.width <= 430 ? "60%" : "68%";
-      boat.style.width = host.width <= 430 ? "54vw" : "";
-    }
     const pad = 48;
     const forbid = {
       l: box.left - host.left - pad,
@@ -77,37 +73,29 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     };
     const hits = (x: number, y: number, w: number, h: number) =>
       x < forbid.r && x + w > forbid.l && y < forbid.b && y + h > forbid.t;
-    root.querySelectorAll<HTMLElement>(".wind-line.in-sky").forEach((line, index) => {
-      if (getComputedStyle(line).display === "none") return;
-      const w = Math.min(host.width * 0.11, 160);
-      const h = 3;
-      let x = forbid.r + 16 + index * 12;
-      const y = Math.max(72, box.top - host.top + 10 + index * Math.max(26, host.height * 0.055));
-      if (x + w > host.width - 8) x = Math.max(8, host.width - w - 8);
-      if (hits(x, y, w, h)) {
-        line.style.visibility = "hidden";
-        return;
-      }
-      line.style.visibility = "visible";
-      line.style.left = `${x}px`;
-      line.style.top = `${y}px`;
-      line.style.width = `${w}px`;
-    });
+    const minTop = 76 + 48;
+    const bandTop = Math.max(minTop, host.height * 0.18);
+    const bandBot = Math.max(bandTop + 24, Math.min(host.height * 0.38, host.height - 24));
+    const boatBox = boat?.getBoundingClientRect();
+    const hitsBoat = (x: number, y: number, w: number, h: number) => {
+      if (!boatBox) return false;
+      const bl = boatBox.left - host.left;
+      const bt = boatBox.top - host.top;
+      return x < bl + boatBox.width && x + w > bl && y < bt + boatBox.height * 0.72 && y + h > bt;
+    };
     gulls.forEach((gull, index) => {
       if (getComputedStyle(gull).display === "none") return;
-      const w = gull.getBoundingClientRect().width || 22;
+      const w = gull.getBoundingClientRect().width || (narrow ? 18 : 24);
       const h = 14;
-      let x = narrow ? host.width - 14 - w - index * 28 : host.width * (0.7 + index * 0.07);
-      let y = narrow ? box.top - host.top + 6 + index * 26 : host.height * (index === 1 ? 0.22 : 0.16);
-      if (hits(x, y, w, h)) {
-        x = Math.min(host.width - w - 8, Math.max(8, forbid.r + 8));
-        y = narrow ? box.top - host.top + 6 + index * 26 : y;
+      const slot = narrow ? [0.78, 0.9] : [0.48, 0.62, 0.78];
+      let x = host.width * (slot[index] ?? 0.8);
+      let y = bandTop + (bandBot - bandTop) * (index === 0 ? 0.08 : index === 1 ? 0.42 : 0.22);
+      if (hits(x, y, w, h) || hitsBoat(x, y, w, h)) {
+        x = Math.min(host.width - w - 8, Math.max(forbid.r + 12, x));
+        y = bandTop + index * 10;
       }
-      if (hits(x, y, w, h)) {
-        x = Math.min(host.width - w - 8, host.width - 14 - w - (index % 2) * 32);
-        y = forbid.b + 16 + index * 22;
-      }
-      if (hits(x, y, w, h) || x < 4 || y < 4 || x + w > host.width - 2 || y + h > host.height - 2) {
+      if (y < minTop) y = minTop;
+      if (hits(x, y, w, h) || hitsBoat(x, y, w, h) || x < 4 || x + w > host.width - 4 || y + h > bandBot) {
         gull.style.visibility = "hidden";
         return;
       }
@@ -144,15 +132,16 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const damp = clock.intro < 4.2 ? 1 : clock.intro >= 5 ? 0 : 1 - (clock.intro - 4.2) / 0.8;
     const wave = heave(Math.min(clock.intro, 4.2));
     const heel = motion.sail * 8 + wave.pitch * damp;
-    if (!sp()) boat.style.left = "72%";
+    if (!sp()) boat.style.left = "68%";
     boat.style.transform = `translate3d(-50%, ${wave.y * damp}px, 0) rotate(${heel}deg)`;
     if (spray) spray.style.opacity = String(0.2 + motion.sail * 0.75);
-    const drift = motion.surge * -6 - Math.min(motion.scroll, 0.75) * 10;
+    const drift = (1 - motion.surge) * -4 - Math.min(motion.scroll, 0.75) * 6;
     if (fleet) fleet.style.transform = `translateX(${drift}vw)`;
-    const pass = motion.surge * 8 + (motion.scroll < 0.4 ? (motion.scroll / 0.4) * 12 : motion.scroll > 0 ? 12 : 0);
-    const travel = sp() ? 0 : pass;
-    gulls.forEach((gull, index) => {
-      gull.style.transform = `translate3d(${travel + (sp() ? 0 : index * 2)}vw, 0, 0)`;
+    const pass = motion.surge * 6 + (motion.scroll < 0.4 ? (motion.scroll / 0.4) * 8 : motion.scroll > 0 ? 8 : 0);
+    const span = sp() ? 3 : 6;
+    const travel = Math.min(pass, span);
+    gulls.forEach((gull) => {
+      gull.style.transform = `translate3d(${travel - span}vw, 0, 0)`;
     });
     if (clock.intro >= 5) root.classList.add("is-settled");
     placeScene();
@@ -185,17 +174,18 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       gsap.from(".mv-ja", { y: 12, autoAlpha: 0, duration: 0.8, delay: 0.2, ease: "power3.out" }),
     );
     lines.forEach((line, index) => {
-      const far = line.classList.contains("far") ? 0.45 : 0;
-      const opacity = line.classList.contains("is-hot") ? 0.85 : line.classList.contains("is-sky") ? 0.7 : 0.55;
-      const sky = line.classList.contains("in-sky");
+      const opacity = line.classList.contains("is-hot") ? 0.7 : 0.85;
       tweens.push(
         gsap.fromTo(
           line,
-          { x: sky ? "0vw" : "-6vw", autoAlpha: 0 },
-          { x: sky ? "0vw" : `${(1 - far) * 4.5}vw`, autoAlpha: opacity, duration: 3.8, delay: 1.2 + index * 0.04, ease: "none" },
+          { x: "-4vw", autoAlpha: 0 },
+          { x: "2vw", autoAlpha: opacity, duration: 3.4, delay: 1.15 + index * 0.12, ease: "power1.out" },
         ),
       );
     });
+    if (reflect) {
+      tweens.push(gsap.to(reflect, { x: 2, duration: 0.8, repeat: 5, yoyo: true, ease: "sine.inOut" }));
+    }
     setRun();
   });
 
@@ -294,7 +284,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const paint = () => {
       const narrow = sp();
       const fov = ((narrow ? 50 : 36) * Math.PI) / 180;
-      const horizon = narrow ? 0.6 : 0.66;
+      const horizon = narrow ? 0.6 : 0.56;
       const ndc = 1 - horizon * 2;
       const look = Math.atan(-ndc * Math.tan(fov / 2));
       const p = motion.scroll;
@@ -331,7 +321,11 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       gl.uniform1f(u("uExposure"), 0.4 + sunLift * 0.08);
       gl.uniform1f(u("uCaustic"), tier === "3" ? 1 : 0.5);
       gl.uniform4f(u("uHead"), rect[0] ?? 0, rect[1] ?? 0, rect[2] ?? 0, rect[3] ?? 0);
-      gl.uniform1f(u("uSunX"), narrow ? 0.86 : 0.84);
+      gl.uniform1f(u("uSunX"), 0.86);
+      gl.uniform1f(u("uHorizon"), horizon);
+      gl.uniform1f(u("uScroll"), p);
+      gl.uniform1f(u("uCloud"), Math.min(clock.intro, 120) * (0.06 / 120) + p * 0.06);
+      gl.uniform1f(u("uSunR"), 420 * (canvas.height / Math.max(host.height, 1)));
       gl.uniform3f(u("uTap"), 0, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (divider) divider.style.transform = `scaleX(${Math.min(1, converge)})`;

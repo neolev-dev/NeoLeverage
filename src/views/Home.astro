@@ -46,6 +46,12 @@ const flow = locale === "ja"
         <p class="idx">01</p>
         <p class="en-label" lang="en">Creative / Marketing / AI</p>
         <h2>{copy.valuesTitle}</h2>
+        <p class="lead home-statement">
+          {(locale === "ja"
+            ? ["ネオレバレッジはテクノロジーと", "創造力を「時代のてこ」にして、", "企業と社会の未来を加速させる", "クリエイティブカンパニーです。"]
+            : ["NeoLeverage is a creative company", "that uses technology and creativity", "as levers of the era."]
+          ).map((phrase) => <span class="ph">{phrase}</span>)}
+        </p>
       </div>
       <div class="rows">
         {areas.map((area, index) => (
@@ -187,7 +193,7 @@ const flow = locale === "ja"
 
     <section class="cta-band">
       <div>
-        <h2>{copy.ctaTitle}</h2>
+        <h2>{copy.ctaLines.map((line) => <span>{line}</span>)}</h2>
         <p>{copy.ctaBody}</p>
       </div>
       <a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a>

@@ -129,7 +129,7 @@ const ja = locale === "ja";
 )}
 <section class="cta-band">
   <div>
-    <h2>{copy.ctaTitle}</h2>
+    <h2>{copy.ctaLines.map((line) => <span>{line}</span>)}</h2>
     <p>{copy.ctaBody}</p>
   </div>
   <a class="btn btn-accent" href={`${localePath(locale, "/contact")}?topic=${service.slug === "photo-sns-video" ? "photo-sns-video" : service.slug === "ai-automation" ? "ai-automation" : service.area === "marketing" ? "marketing" : "production"}`}>{copy.consult}</a>

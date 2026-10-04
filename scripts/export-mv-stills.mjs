@@ -66,7 +66,7 @@ async function boot() {
     canvas.height = h;
     gl.viewport(0, 0, w, h);
     const fov = ((narrow ? 50 : 36) * Math.PI) / 180;
-    const horizon = narrow ? 0.6 : 0.66;
+    const horizon = narrow ? 0.6 : 0.56;
     const pitch = leverPitch(fov, horizon);
     const ship = narrow
       ? [0.58, 0.43, 0.42, 0.42 * (w / h) * (460 / 340)]
@@ -89,7 +89,11 @@ async function boot() {
     gl.uniform1f(u("uExposure"), 0.4);
     gl.uniform1f(u("uCaustic"), 1);
     gl.uniform4f(u("uHead"), narrow ? 0.05 : 0.044, narrow ? 0.13 : 0.12, narrow ? 0.9 : 0.48, narrow ? 0.28 : 0.4);
-    gl.uniform1f(u("uSunX"), narrow ? 0.86 : 0.84);
+    gl.uniform1f(u("uSunX"), 0.86);
+    gl.uniform1f(u("uHorizon"), horizon);
+    gl.uniform1f(u("uScroll"), 0);
+    gl.uniform1f(u("uCloud"), 5 * (0.06 / 120));
+    gl.uniform1f(u("uSunR"), 420 * (h / (narrow ? 1920 : 900)));
     gl.uniform3f(u("uTap"), 0, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
@@ -246,7 +250,7 @@ await sharp(files.get("pc")).resize({ width: 2560 }).webp({ quality: 68 }).toFil
 await sharp(files.get("pc")).resize({ width: 1920 }).webp({ quality: 68 }).toFile("public/mv/pc-1920.webp");
 await sharp(files.get("pc")).resize({ width: 1280 }).webp({ quality: 68 }).toFile("public/mv/pc-1280.webp");
 await sharp(files.get("sp")).resize({ width: 1080 }).webp({ quality: 68 }).toFile("public/mv/sp-1080.webp");
-await sharp(files.get("og")).png().toFile("public/og-default.png");
+await sharp(files.get("og")).png({ compressionLevel: 9, palette: true, quality: 90, effort: 10 }).toFile("public/og-default.png");
 writeFileSync("/tmp/mv-export/pc.png", files.get("pc"));
 writeFileSync("/tmp/mv-export/sp.png", files.get("sp"));
 writeFileSync("/tmp/mv-export/og.png", files.get("og"));

@@ -1,16 +1,11 @@
 ---
-import { localePath, type Locale } from "../../lib/i18n/locale";
-import { t } from "../../lib/i18n/ui";
+import type { Locale } from "../../lib/i18n/locale";
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
-const copy = t(locale);
-const phrases = locale === "ja"
-  ? ["ネオレバレッジはテクノロジーと", "創造力を「時代のてこ」にして、", "企業と社会の未来を加速させる", "クリエイティブカンパニーです。"]
-  : ["NeoLeverage is a creative company", "that uses technology and creativity", "as levers of the era."];
 const sub = locale === "ja" ? "成長に、追い風を。" : "A clear morning, and a following wind.";
 const main = {
   calm: "M168 8C118 120 108 250 128 392L168 400C156 260 154 140 168 8Z",
@@ -37,104 +32,127 @@ const jib = {
   </noscript>
   <div class="mv-fleet" data-fleet aria-hidden="true">
     <svg class="distant" viewBox="0 0 80 70">
-      <path fill="#e7f2f8" d="M40 4C28 24 22 42 28 56H40C34 38 34 18 40 4Z" />
-      <path fill="#f4efe4" fill-opacity="0.7" d="M40 16C52 30 58 44 52 56H40C46 40 44 26 40 16Z" />
-      <path fill="#d5e4ee" d="M18 56C32 52 54 52 70 56L64 64C46 68 28 68 14 60Z" />
-      <path stroke="#e8a07a" stroke-width="1" d="M18 56C32 52 54 52 70 56" />
+      <path fill="#ffffff" d="M40 4C28 24 22 42 28 56H40C34 38 34 18 40 4Z" />
+      <path fill="#fff6e0" fill-opacity="0.9" d="M40 16C52 30 58 44 52 56H40C46 40 44 26 40 16Z" />
+      <path fill="#e7f4fb" d="M18 56C32 52 54 52 70 56L64 64C46 68 28 68 14 60Z" />
     </svg>
     <svg class="distant distant-b" viewBox="0 0 80 70">
-      <path fill="#e4f0f6" d="M40 8C30 26 24 42 30 56H40C36 40 36 22 40 8Z" />
-      <path fill="#f3eee6" fill-opacity="0.65" d="M40 18C50 32 56 44 50 56H40C46 40 44 28 40 18Z" />
-      <path fill="#d0e0ea" d="M20 56C34 52 52 52 66 56L60 63C44 66 30 66 16 60Z" />
+      <path fill="#ffffff" d="M40 8C30 26 24 42 30 56H40C36 40 36 22 40 8Z" />
+      <path fill="#fff4d8" fill-opacity="0.8" d="M40 18C50 32 56 44 50 56H40C46 40 44 28 40 18Z" />
+      <path fill="#e3f1f8" d="M20 56C34 52 52 52 66 56L60 63C44 66 30 66 16 60Z" />
     </svg>
   </div>
   <div class="mv-gulls" aria-hidden="true">
-    <svg class="gull" viewBox="0 0 26 10"><path d="M1 6c4-4 8-4 12 0M13 6c4-4 8-4 12 0" /></svg>
-    <svg class="gull" viewBox="0 0 20 8"><path d="M1 5c3-3 6-3 9 0M10 5c3-3 6-3 9 0" /></svg>
-    <svg class="gull gull-c" viewBox="0 0 14 6"><path d="M1 4c2-2 4-2 6 0M7 4c2-2 4-2 6 0" /></svg>
+    <span class="gull" style="--flap:0.9s;--delay:0s;--count:6">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
+    <span class="gull" style="--flap:1.1s;--delay:0.35s;--count:5">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
+    <span class="gull gull-c" style="--flap:1.3s;--delay:0.7s;--count:4">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
   </div>
   <div class="mv-boat" data-boat>
-    <svg class="boat-svg" viewBox="0 0 340 460" aria-hidden="true">
+    <div class="keel-shadow" aria-hidden="true"></div>
+    <svg class="wake-v" viewBox="0 0 100 31.68" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <linearGradient id="sail-camber" x1="0" y1="0.1" x2="1" y2="0.15">
-          <stop offset="0" stop-color="#4e6d82" stop-opacity="0.72" />
-          <stop offset="0.22" stop-color="#d5e4ee" stop-opacity="0.55" />
-          <stop offset="0.48" stop-color="#ffffff" stop-opacity="0.96" />
-          <stop offset="0.74" stop-color="#c5d5e2" stop-opacity="0.78" />
-          <stop offset="1" stop-color="#fff1d2" stop-opacity="0.42" />
-        </linearGradient>
-        <radialGradient id="sail-belly" cx="0.62" cy="0.42" r="0.62">
-          <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
-          <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.05" />
-          <stop offset="1" stop-color="#6d8798" stop-opacity="0.42" />
-        </radialGradient>
-        <linearGradient id="hull-form" x1="0.2" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffffff" />
-          <stop offset="0.34" stop-color="#e7eef3" />
-          <stop offset="0.68" stop-color="#b7c9d6" />
-          <stop offset="1" stop-color="#6d8798" />
-        </linearGradient>
-        <linearGradient id="hull-sheer" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#8ea6b6" stop-opacity="0.15" />
-          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.2" />
-          <stop offset="1" stop-color="#ffffff" stop-opacity="0.85" />
+        <linearGradient id="mv-wake-grad" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.6" />
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
         </linearGradient>
       </defs>
-      <g class="wake-svg" fill="none" stroke="#ffffff" stroke-linecap="round">
-        <path stroke-width="3" stroke-opacity="0.85" d="M78 408C40 428 6 452 22 478" />
-        <path stroke-width="1.6" stroke-opacity="0.65" d="M96 404C52 430 18 458 40 488" />
-        <path stroke-width="1.2" stroke-opacity="0.45" d="M112 400C70 424 36 448 58 476" />
+      <path d="M100 15.84 L0 0" stroke="url(#mv-wake-grad)" fill="none" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M100 15.84 L0 31.68" stroke="url(#mv-wake-grad)" fill="none" stroke-width="1.6" stroke-linecap="round" />
+    </svg>
+    <svg class="boat-svg" viewBox="0 0 340 460" aria-hidden="true">
+      <defs>
+        <linearGradient id="sail-camber" x1="0" y1="0.15" x2="1" y2="0">
+          <stop offset="0" stop-color="#c5daf0" stop-opacity="0.78" />
+          <stop offset="0.32" stop-color="#f7fbfe" stop-opacity="0.94" />
+          <stop offset="0.58" stop-color="#ffffff" stop-opacity="0.99" />
+          <stop offset="0.82" stop-color="#fff3d4" stop-opacity="0.62" />
+          <stop offset="1" stop-color="#ffe4b0" stop-opacity="0.34" />
+        </linearGradient>
+        <radialGradient id="sail-belly" cx="0.66" cy="0.42" r="0.58">
+          <stop offset="0" stop-color="#fff6e4" stop-opacity="0.45" />
+          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.12" />
+          <stop offset="1" stop-color="#d5e6f4" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="hull-form" x1="0.15" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.42" stop-color="#f3f8fb" />
+          <stop offset="0.72" stop-color="#d7e5ef" />
+          <stop offset="1" stop-color="#c5d5e2" />
+        </linearGradient>
+        <linearGradient id="hull-sheer" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#9bb4c6" stop-opacity="0.12" />
+          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.16" />
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0.8" />
+        </linearGradient>
+        <filter id="mv-refl-blur" filterUnits="userSpaceOnUse" x="-60" y="340" width="500" height="300">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+        <filter id="mv-edge-blur" x="-8%" y="-8%" width="116%" height="116%">
+          <feGaussianBlur stdDeviation="2" />
+        </filter>
+        <mask id="mv-wet" maskUnits="userSpaceOnUse" x="-20" y="0" width="400" height="480">
+          <rect x="-20" y="0" width="400" height="480" fill="#fff" />
+          <path filter="url(#mv-edge-blur)" fill="#000" d="M-20 430C70 468 250 462 360 416L360 490L-20 490Z" />
+        </mask>
+      </defs>
+      <g class="boat-reflect">
+        <g opacity="0.22" filter="url(#mv-refl-blur)" transform="translate(0 432) scale(1 -0.4) translate(0 -432)">
+          <use href="#mv-boat-draw" />
+        </g>
       </g>
-      <ellipse class="keel-shadow" cx="168" cy="446" rx="118" ry="10" />
-      <path class="hull" fill="url(#hull-form)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
-      <path fill="url(#hull-sheer)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
-      <path class="waterline" d="M44 432C108 456 248 450 318 424" />
-      <path class="waterline-hi" d="M52 424C112 446 244 440 312 416" />
-      <path class="stripe" d="M52 400C98 386 146 394 172 390C234 382 296 364 328 350" />
-      <path class="mast" d="M170 428V8" />
-      <g data-boom>
-        <path class="boom" d="M166 386L142 390" />
-      </g>
-      <g class="spray" data-spray>
-        <path d="M328 348c12-8 18-10 16-20" />
-        <path d="M336 354c16-12 22-10 18-24" />
-        <path d="M320 360c14-6 22-8 18-18" />
-        <path d="M342 344c10-14 8-22 2-28" />
-        <path d="M330 340c6-10 4-16 0-20" />
-        <circle cx="352" cy="324" r="2.2" fill="#fff" stroke="none" />
-        <circle cx="344" cy="312" r="1.5" fill="#fff" stroke="none" />
-        <circle cx="336" cy="332" r="1.8" fill="#fff" stroke="none" />
-        <circle cx="358" cy="338" r="1.2" fill="#fff" stroke="none" />
-      </g>
-      <g data-leech>
-        <path data-sail="main" fill="url(#sail-camber)" d={main.calm} data-half={main.half} data-full={main.full} />
-        <path data-sail="jib" fill="url(#sail-camber)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
-        <path class="sail-shade" fill="url(#sail-belly)" d={main.calm} data-half={main.half} data-full={main.full} />
-        <path class="sail-shade" fill="url(#sail-belly)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
+      <g id="mv-boat-draw">
+        <g mask="url(#mv-wet)">
+          <path class="hull" fill="url(#hull-form)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
+          <path fill="url(#hull-sheer)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
+          <path class="stripe" d="M52 400C98 386 146 394 172 390C234 382 296 364 328 350" />
+        </g>
+        <path class="waterline" d="M44 432C108 456 248 450 318 424" />
+        <path class="waterline-hi" d="M52 424C112 446 244 440 312 416" />
+        <g class="bow-wave" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-opacity="0.8">
+          <path stroke-width="3.2" d="M318 414C352 406 386 418 412 446" />
+          <path stroke-width="1.7" d="M308 422C346 412 388 428 404 452" />
+        </g>
+        <path class="mast" d="M170 428V8" />
+        <g data-boom>
+          <path class="boom" d="M166 386L142 390" />
+        </g>
+        <g class="spray" data-spray>
+          <path d="M328 348c12-8 18-10 16-20" />
+          <path d="M336 354c16-12 22-10 18-24" />
+          <path d="M320 360c14-6 22-8 18-18" />
+          <path d="M342 344c10-14 8-22 2-28" />
+          <circle cx="352" cy="324" r="2.2" fill="#fff" stroke="none" />
+          <circle cx="344" cy="312" r="1.5" fill="#fff" stroke="none" />
+          <circle cx="336" cy="332" r="1.8" fill="#fff" stroke="none" />
+        </g>
+        <g data-leech>
+          <path data-sail="main" fill="url(#sail-camber)" d={main.calm} data-half={main.half} data-full={main.full} />
+          <path data-sail="jib" fill="url(#sail-camber)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
+          <path class="sail-shade" fill="url(#sail-belly)" d={main.calm} data-half={main.half} data-full={main.full} />
+          <path class="sail-shade" fill="url(#sail-belly)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
+        </g>
       </g>
     </svg>
   </div>
   <div class="mv-wind" aria-hidden="true">
-    <i class="wind-line is-sky in-sky" style="--y:18%;--x:78%;--w:12vw;--h:1.5px"></i>
-    <i class="wind-line is-hot in-sky" style="--y:27%;--x:82%;--w:11vw;--h:1.75px"></i>
-    <i class="wind-line is-sky in-sky" style="--y:36%;--x:80%;--w:10vw;--h:1.25px"></i>
-    <i class="wind-line" style="--y:72%;--x:6%;--w:24vw;--h:1.5px"></i>
-    <i class="wind-line" style="--y:76%;--x:16%;--w:28vw;--h:2px"></i>
-    <i class="wind-line" style="--y:81%;--x:4%;--w:18vw;--h:1.25px"></i>
-    <i class="wind-line is-hot" style="--y:69%;--x:28%;--w:16vw;--h:1.5px"></i>
-    <i class="wind-line far sp-hide" style="--y:85%;--x:40%;--w:18vw;--h:1.25px"></i>
+    <span class="wind-trail" style="--y:12%;--x:62%"><i style="--w:16vw;--rot:-14deg"></i></span>
+    <span class="wind-trail is-hot" style="--y:20%;--x:70%"><i style="--w:13vw;--rot:-18deg"></i></span>
+    <span class="wind-trail" style="--y:28%;--x:66%"><i style="--w:15vw;--rot:-11deg"></i></span>
   </div>
   <div class="mv-copy" data-copy>
-    <p class="mv-brand" lang="en">
-      <span class="mv-line w520">Tailwinds</span>
-      <span class="mv-line"><span class="w300">For Your</span> <span class="w520">Grow<span class="k-wt">t</span>h</span></span>
-    </p>
-    <p class="mv-sub mv-ja">{sub}</p>
-    <h1 class="mv-lead">
-      {phrases.map((phrase) => <span class="ph">{phrase}</span>)}
+    <h1 class="mv-brand" lang="en">
+      <span class="mv-line">Tailwinds</span>
+      <span class="mv-line mv-rest"><span class="mv-for">For Your</span> <span class="mv-growth">Grow<span class="k-wt">t</span>h</span></span>
     </h1>
+    <p class="mv-sub mv-ja">{sub}</p>
   </div>
-  <a class="mv-scroll" href="#values"><span>{copy.scroll}</span><i></i></a>
+  <a class="mv-scroll" href="#values"><span>SCROLL</span><i aria-hidden="true"></i></a>
   <div class="mv-divider" data-divider data-motion="MO-HOME-03" aria-hidden="true"></div>
   <script>
     import { bootMv } from "../../animations/mv";
