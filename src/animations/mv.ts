@@ -24,6 +24,26 @@ const lever = (() => {
   };
 })();
 
+const fillEase = (amount: number) => {
+  const y = lever(Math.min(1, Math.max(0, amount)));
+  const over = Math.max(0, y - 1);
+  const lin = Math.min(y, 1);
+  return lin + over * (0.02857 / 0.02991);
+};
+
+function lerpPath(rest: string, full: string, t: number) {
+  const re = /-?\d*\.?\d+/g;
+  const start = rest.match(re);
+  const end = full.match(re);
+  if (!start || !end || start.length !== end.length) return t >= 1 ? full : rest;
+  let index = 0;
+  return rest.replace(re, () => {
+    const value = Number(start[index]) + (Number(end[index]) - Number(start[index])) * t;
+    index += 1;
+    return (Math.round(value * 10) / 10).toString();
+  });
+}
+
 function frag(webgl2: boolean): string {
   return webgl2
     ? `#version 300 es\nprecision highp float;\nout vec4 fragColor;\n${BODY}`
@@ -137,8 +157,14 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     return;
   }
 
-  const motion = { wind: 0, front: 0, sail: 0, surge: 0, scroll: 0, nudge: 0, wake: 0 };
-  const clock = { intro: 0, flow: 0, vel: 0, last: performance.now(), hidden: false, away: false, pointer: 0 };
+  const motion = { wind: 0, front: 0, sail: 0, surge: 0, scroll: 0, nudge: 0, wake: 0, mouse: 0 };
+  const clock = { intro: 0, flow: 0, vel: 0, last: performance.now(), hidden: false, away: false, pointer: 0, age: 0 };
+  const aim = { x: 0.5, y: 0.62, sx: 0.5, sy: 0.62 };
+  const heelLog: { t: number; h: number }[] = [];
+  const frameMs: number[] = [];
+  const rig = root.querySelector<SVGGElement>("[data-rig]");
+  const leech = root.querySelector<SVGGElement>("[data-leech]");
+  const sailPaths = [...root.querySelectorAll<SVGPathElement>("[data-rest]")];
   let raf = 0;
   let frame = (_now: number) => {};
   const live = () => !clock.hidden && !clock.away;
@@ -151,29 +177,55 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const slide = span * span * (3 - 2 * span);
     const back = (1 - slide) * 3;
     motion.wake = slide;
-    boat.style.transform = `translate3d(calc(-50% - ${back}vw), 0px, 0) rotate(${heelU * 8}deg)`;
-    if (bow) bow.style.opacity = String(span <= 0 ? 0 : Math.min(1, span / 0.4));
+    const pitchPhase = clock.intro < 5 ? clock.intro / 2.4 : 5 / 2.4 + motion.scroll;
+    const pitch = 0.6 * Math.sin(pitchPhase * Math.PI * 2);
+    const heel = heelU * 8 + pitch;
+    boat.style.transform = `translate3d(calc(-50% - ${back}vw), 0px, 0) rotate(${heel}deg)`;
+    heelLog.push({ t: clock.age, h: heel });
+    while (heelLog.length > 1 && clock.age - heelLog[0].t > 0.25) heelLog.shift();
+    let heelLag = heel;
+    const want = clock.age - 0.08;
+    for (let i = 0; i < heelLog.length; i += 1) {
+      if (heelLog[i].t <= want) heelLag = heelLog[i].h;
+    }
+    if (rig) rig.setAttribute("transform", `rotate(${(heelLag - heel).toFixed(3)} 170 432)`);
+    const fillU = clock.intro < 1.2 ? 0 : Math.min(1, (clock.intro - 1.2) / 1.8);
+    const camberT = fillEase(fillU);
+    sailPaths.forEach((path) => {
+      const rest = path.dataset.rest;
+      const full = path.dataset.full;
+      if (rest && full) path.setAttribute("d", lerpPath(rest, full, camberT));
+    });
+    if (leech) {
+      const damp = clock.intro < 1.2 ? 1 : clock.intro < 3 ? 1 - (clock.intro - 1.2) / 1.8 : 0;
+      const wobble = Math.sin((clock.intro / 0.35) * Math.PI * 2) * 3 * damp;
+      const scale = 1 + wobble / 104;
+      leech.setAttribute("transform", `translate(168 0) scale(${scale.toFixed(4)} 1) translate(-168 0)`);
+    }
+    if (bow) bow.style.opacity = String(span <= 0 ? 0 : Math.min(1, span / 0.15));
     const gullU = Math.min(1, clock.intro / 5);
     gulls.forEach((gull, index) => {
       const dist = 4 + (index % 3) * 1.5;
       gull.style.transform = `translate3d(${(gullU - 1) * dist}vw, 0, 0)`;
     });
+    const bursts = [3, 3.68, 4.36];
     drops.forEach((drop) => {
-      const baseX = Number(drop.dataset.x);
-      const baseY = Number(drop.dataset.y);
-      const rise = Number(drop.dataset.rise);
-      const delay = Number(drop.dataset.delay);
-      const t = (clock.intro - 3 - delay) / 0.6;
-      if (clock.intro < 3 || clock.intro >= 5 || t <= 0 || t >= 1) {
-        drop.style.opacity = "0";
-        drop.setAttribute("cx", String(baseX));
-        drop.setAttribute("cy", String(baseY));
-        return;
+      const slot = Number(drop.dataset.i);
+      let shown = false;
+      for (let burst = 0; burst < bursts.length; burst += 1) {
+        const t = (clock.intro - bursts[burst]) / 0.6;
+        if (t <= 0 || t >= 1) continue;
+        const jitter = ((slot * 17 + burst * 13) % 10) / 10;
+        const baseX = 298 + jitter * 46;
+        const baseY = 422 + ((slot * 3 + burst) % 5);
+        const rise = 9 + (slot % 5) * 2.4;
+        drop.setAttribute("r", (3.1 + (slot % 4) * 0.55).toFixed(2));
+        drop.setAttribute("cx", (baseX + (baseX - 320) * 0.28 * t).toFixed(1));
+        drop.setAttribute("cy", (baseY - rise * t).toFixed(1));
+        drop.style.opacity = (0.95 * (1 - t)).toFixed(3);
+        shown = true;
       }
-      const spread = (baseX - 322) * 0.35;
-      drop.setAttribute("cx", String(baseX + spread * t));
-      drop.setAttribute("cy", String(baseY - rise * t));
-      drop.style.opacity = String(0.9 * (1 - t));
+      if (!shown) drop.style.opacity = "0";
     });
     const shift = -Math.min(motion.scroll, 0.75) * 6;
     if (fleet) fleet.style.transform = shift ? `translateX(${shift}vw)` : "";
@@ -191,12 +243,6 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   void import("gsap/MorphSVGPlugin").then(({ MorphSVGPlugin }) => {
     gsap.registerPlugin(MorphSVGPlugin);
     const tl = gsap.timeline({ paused: true });
-    root.querySelectorAll<SVGPathElement>("[data-full]").forEach((path) => {
-      const half = path.dataset.half;
-      const full = path.dataset.full;
-      if (half) tl.to(path, { morphSVG: half, duration: 0.9, ease: "power1.inOut" }, 1.2);
-      if (full) tl.to(path, { morphSVG: full, duration: 0.9, ease: lever }, 2.1);
-    });
     tl.to(motion, { sail: 1, front: 1, wind: 1, duration: 1.8, ease: "power1.inOut" }, 1.2);
     const boom = root.querySelector<SVGLineElement>(".boom-bar");
     const mast = root.querySelector<SVGPathElement>(".mast-bar");
@@ -217,7 +263,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       );
     }
     lines.forEach((line, index) => {
-      const opacity = line.classList.contains("is-hot") ? 0.7 : 0.85;
+      const opacity = line.classList.contains("is-hot") ? 0.8 : 0.95;
       tl.fromTo(
         line,
         { x: "-72vw", autoAlpha: 0 },
@@ -338,7 +384,7 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       const drop = p < 0.75 ? 0 : ((p - 0.75) / 0.25) * (look - (-5 * Math.PI) / 180);
       const sunLift = p < 0.4 ? 0 : p > 0.75 ? 3 : ((p - 0.4) / 0.35) * 3;
       const windBase = motion.wind * (p < 0.4 ? 1 + (p / 0.4) * 0.4 : p > 0 ? 1.4 : 1);
-      const wind = Math.min(1.5, windBase + motion.nudge);
+      const wind = Math.min(1.5, windBase);
       const converge = p < 0.75 ? 0 : (p - 0.75) / 0.25;
       const fade = p < 0.92 ? 0 : (p - 0.92) / 0.08;
       const host = root.getBoundingClientRect();
@@ -364,8 +410,18 @@ export async function bootMv(root: HTMLElement): Promise<void> {
       const bowPt = projectBoat(240, 442) ?? (narrow ? [0.78, 0.7] : [0.79, 0.68]);
       gl.uniform2f(u("uStern"), stern[0], stern[1]);
       gl.uniform2f(u("uBow"), bowPt[0], bowPt[1]);
-      gl.uniform1f(u("uYaw"), motion.nudge * 1.6);
+      gl.uniform1f(u("uYaw"), 0);
       gl.uniform1f(u("uBeam"), narrow ? 0.02 : 0.014);
+      const wl = (x: number, y: number) => projectBoat(x, y) ?? stern;
+      const wl0 = wl(46, 404);
+      const wl1 = wl(44, 432);
+      const wl2 = wl(40, 438);
+      gl.uniform2f(u("uWl0"), wl0[0], wl0[1]);
+      gl.uniform2f(u("uWl1"), wl1[0], wl1[1]);
+      gl.uniform2f(u("uWl2"), wl2[0], wl2[1]);
+      gl.uniform2f(u("uCursor"), aim.sx, aim.sy);
+      gl.uniform1f(u("uMouse"), narrow ? 0 : motion.mouse);
+      gl.uniform2f(u("uCss"), host.width, host.height);
       gl.uniform1f(u("uConverge"), converge);
       gl.uniform1f(u("uGlitter"), glitter);
       gl.uniform1f(u("uOct"), tier === "3" ? 5 : 3);
@@ -422,10 +478,11 @@ export async function bootMv(root: HTMLElement): Promise<void> {
   };
 
   root.addEventListener("pointermove", (event) => {
-    if (tier === "0" || event.pointerType !== "mouse") return;
+    if (tier === "0" || event.pointerType !== "mouse" || sp()) return;
     clock.pointer = performance.now();
     const rect = root.getBoundingClientRect();
-    motion.nudge = ((event.clientX - rect.left) / rect.width - 0.5) * 0.16;
+    aim.x = (event.clientX - rect.left) / Math.max(rect.width, 1);
+    aim.y = (event.clientY - rect.top) / Math.max(rect.height, 1);
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -444,15 +501,25 @@ export async function bootMv(root: HTMLElement): Promise<void> {
     const dt = Math.min(0.05, dtRaw);
     clock.last = now;
     if (live()) {
+      clock.age += dt;
       if (clock.intro < 5) clock.intro = Math.min(5, clock.intro + Math.min(0.25, dtRaw));
       timeline?.seek(clock.intro);
       const since = clock.pointer ? (now - clock.pointer) / 1000 : 99;
+      aim.sx += (aim.x - aim.sx) * 0.15;
+      aim.sy += (aim.y - aim.sy) * 0.15;
+      const amp = sp() ? 0 : since < 0.05 ? 1 : Math.max(0, 1 - Math.max(0, since - 0.05) / 0.6);
+      motion.mouse = (aim.sx - 0.5) * 2 * amp;
       const interacting = since < 1.2 || motion.scroll > 0.001;
       if (clock.intro < 5 || interacting) clock.vel = Math.min(1, clock.vel + dt / 0.2);
       else clock.vel = Math.max(0, clock.vel - dt / 1.2);
       const rate = clock.intro < 5 ? 0.25 + motion.surge * 1.1 : clock.vel;
       clock.flow += dt * rate * (1 + Math.min(motion.scroll, 0.4) * 0.6);
-      if (since > 0.05) motion.nudge += (0 - motion.nudge) * Math.min(1, dt / 1.2);
+      frameMs.push(dtRaw * 1000);
+      if (frameMs.length > 90) frameMs.shift();
+      if (frameMs.length >= 30) {
+        const sorted = [...frameMs].sort((a, b) => a - b);
+        root.dataset.frameMs = (sorted[Math.floor(sorted.length / 2)] ?? 0).toFixed(1);
+      }
     }
     pose();
     if (draw && live() && !dropped) {

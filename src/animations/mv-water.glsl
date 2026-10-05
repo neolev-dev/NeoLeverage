@@ -26,6 +26,12 @@ uniform float uHorizon;
 uniform float uScroll;
 uniform float uCloud;
 uniform float uSunR;
+uniform vec2 uCursor;
+uniform float uMouse;
+uniform vec2 uCss;
+uniform vec2 uWl0;
+uniform vec2 uWl1;
+uniform vec2 uWl2;
 
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){
@@ -113,9 +119,91 @@ void main(){
     float px=uRes.y/900.;
     float Hpx=(1.-h)*uRes.y;
     float yAcc=persp(yN)*Hpx;
+    float wakeMask=0.;
+    float foamA=0.;
+    float aroundA=0.;
+    if(uWake>0.001 && uStern.y>h && uBow.y>h){
+      vec2 sternFrag=vec2(uStern.x*uRes.x,(1.-uStern.y)*uRes.y);
+      vec2 bowFrag=vec2(uBow.x*uRes.x,(1.-uBow.y)*uRes.y);
+      vec2 travel=bowFrag-sternFrag;
+      float rise=atan(-travel.y, travel.x);
+      rise=clamp(rise,0.,.104720);
+      vec2 aft=vec2(-cos(rise),sin(rise));
+      vec2 acr=vec2(-aft.y,aft.x);
+      vec2 dlt=frag-sternFrag;
+      float alongPx=dot(dlt,aft);
+      float acrossPx=dot(dlt,acr);
+      float alongVw=alongPx/max(uRes.x,1.);
+      float reach=.35*clamp(uWake,0.,1.);
+      vec2 wlA=vec2(uWl0.x*uRes.x,(1.-uWl0.y)*uRes.y);
+      vec2 wlB=vec2(uWl1.x*uRes.x,(1.-uWl1.y)*uRes.y);
+      vec2 wlC=vec2(uWl2.x*uRes.x,(1.-uWl2.y)*uRes.y);
+      float a0=dot(wlA-sternFrag,acr);
+      float a1=dot(wlB-sternFrag,acr);
+      float a2=dot(wlC-sternFrag,acr);
+      float l0=dot(wlA-sternFrag,aft);
+      float l1=dot(wlB-sternFrag,aft);
+      float l2=dot(wlC-sternFrag,aft);
+      float edge=l1;
+      float seg=abs(a1-a0);
+      if(acrossPx<=max(a0,a1) && acrossPx>=min(a0,a1) && seg>0.5){
+        edge=mix(l0,l1,clamp((acrossPx-a0)/seg,0.,1.));
+      }else{
+        float seg2=abs(a2-a1);
+        if(seg2>0.5) edge=mix(l1,l2,clamp((acrossPx-a1)/seg2,0.,1.));
+      }
+      edge-=6.;
+      float lead=smoothstep(-1.5,1.5,alongPx-edge);
+      float spanLo=min(min(a0,a1),a2);
+      float spanHi=max(max(a0,a1),a2);
+      float past=max(spanLo-acrossPx, acrossPx-spanHi);
+      float inStern=1.-smoothstep(0.,3.,past);
+      lead*=mix(inStern,1.,smoothstep(0.,16.,alongPx-edge));
+      float depthPx=(uv.y-h)*uRes.y;
+      float offHor=smoothstep(12.,28.,depthPx);
+      if(alongVw>-0.02 && alongVw<reach){
+        float alongT=clamp(alongVw/max(reach,1e-3),0.,1.);
+        float pxS=uCss.x>1.?uRes.x/uCss.x:1.;
+        float grain=mix(8.,2.5,alongT)*pxS;
+        float armW=mix(8.,2.6,alongT)*pxS;
+        float centreW=mix(11.,3.2,alongT)*pxS;
+        float sternHalf=max(uBeam,.008)*uRes.x;
+        float armLine=sternHalf+max(alongPx,0.)*.16;
+        float dArm=min(abs(acrossPx-armLine),abs(acrossPx+armLine));
+        float arms=1.-smoothstep(max(armW-pxS,0.),armW,dArm);
+        float centre=1.-smoothstep(max(centreW-pxS,0.),centreW,abs(acrossPx));
+        float gate=max(arms,centre*.45);
+        wakeMask=max(arms,centre);
+        vec2 adv=vec2(acrossPx,alongPx-uTime*30.*pxS);
+        float n1=noise(adv/max(grain,1.));
+        float n2=noise(adv/max(grain*.58,1.)+4.7);
+        float n=n1*.62+n2*.38;
+        float speck=smoothstep(.55,.55+pxS/max(grain,1.),n);
+        float fade=(1.-alongT)*lead*offHor;
+        foamA=gate*speck*.95*fade;
+        aroundA=wakeMask*fade*(1.-speck);
+      }
+    }
+    float shiftPx=0.;
+    if(uCss.x>1. && abs(uMouse)>0.001){
+      float below=(uv.y-h)*uCss.y;
+      float band=smoothstep(40.,58.,below);
+      vec2 cDel=(uv-uCursor)*uCss;
+      float local=(1.-smoothstep(120.,180.,length(cDel)))*band;
+      float left=uShip.x-uShip.z*.5;
+      float right=uShip.x+uShip.z*.5;
+      float top=uShip.y;
+      float bot=uShip.y+uShip.w;
+      float hullM=step(left,uv.x)*step(uv.x,right)*step(top+uShip.w*.5,uv.y)*step(uv.y,bot+.03);
+      float reflM=step(left,uv.x)*step(uv.x,right)*step(bot-.02,uv.y)*step(uv.y,bot+uShip.w*.34);
+      float onWake=smoothstep(.05,.35,wakeMask);
+      local*=(1.-hullM)*(1.-reflM)*(1.-onWake);
+      shiftPx=uMouse*uRes.x*.004*local;
+    }
+    float sx=frag.x-shiftPx;
     float oct=uOct<.5?4.:uOct;
-    float warp=noise(vec2(frag.x/(150.*px)+uTime*.015,yAcc/(130.*px)))-.5;
-    float warp2=noise(vec2(frag.x/(70.*px)+4.2,yAcc/(64.*px)+1.7))-.5;
+    float warp=noise(vec2(sx/(150.*px)+uTime*.015,yAcc/(130.*px)))-.5;
+    float warp2=noise(vec2(sx/(70.*px)+4.2,yAcc/(64.*px)+1.7))-.5;
     float wave=0.;
     vec2 grad=vec2(0.);
     for(int i=0;i<5;i++){
@@ -130,7 +218,7 @@ void main(){
       float wl=L/max(freq,.001);
       float vis=smoothstep(7.*px,16.*px,wl)*alive;
       float amp=amp0*px*vScale*vis;
-      float along=D.x*(frag.x+warp*40.*px)+D.y*(yAcc+warp2*28.*px);
+      float along=D.x*(sx+warp*40.*px)+D.y*(yAcc+warp2*28.*px);
       float ph=k*along-uTime*(.22+.07*fi)*max(uWind,.2);
       float s=sin(ph),c=cos(ph);
       wave+=amp*s;
@@ -151,8 +239,8 @@ void main(){
     float crest=clamp(wave/(5.2*px),-1.,1.);
     col=mix(col,min(col+vec3(.04,.032,.02),vec3(1.)),max(crest,0.)*.18*smoothstep(.22,.65,yN));
     float caus=uCaustic<.01?1.:uCaustic;
-    float grain=noise(vec2(frag.x/(34.*px)+uTime*.02,yAcc/(30.*px)));
-    float grain2=noise(vec2(frag.x/(15.*px)+9.2,yAcc/(13.*px)+2.4));
+    float grain=noise(vec2(sx/(34.*px)+uTime*.02,yAcc/(30.*px)));
+    float grain2=noise(vec2(sx/(15.*px)+9.2,yAcc/(13.*px)+2.4));
     float caust=smoothstep(.42,.78,grain)*smoothstep(.38,.8,grain2);
     float see=smoothstep(.55,1.,yN)*clamp(.6-crest*.4,0.,1.);
     col=mix(col,clearC,caust*see*caus*.09);
@@ -160,8 +248,9 @@ void main(){
     vec3 V=normalize(-rd);
     float ndv=clamp(dot(n,V),0.,1.);
     float fres=.02+.98*pow(1.-ndv,5.);
-    vec3 refl=skyColor(uv);
-    float sunU=uSunX<0.05?.86:uSunX;
+    vec3 refl=skyColor(vec2(uv.x-shiftPx/max(uRes.x,1.),uv.y));
+    float sunShift=uCss.x>1.?uMouse*24.*uRes.x/uCss.x:0.;
+    float sunU=(uSunX<0.05?.86:uSunX)+sunShift/max(uRes.x,1.);
     float halfW=mix(.018,.095,pow(yN,1.15));
     float gx=abs(uv.x-sunU)/max(halfW,.001);
     float path=exp(-gx*gx);
@@ -169,7 +258,7 @@ void main(){
     float reflAmt=fres*mix(.03,.4,path)*mix(.4,1.,smoothstep(.05,.5,yN));
     col=mix(col,refl,reflAmt);
     float cell=mix(1.1,3.,smoothstep(0.,.7,yN))*px;
-    vec2 g=frag/max(cell,1.);
+    vec2 g=(frag-vec2(sunShift,0.))/max(cell,1.);
     float thresh=mix(.955,.988,smoothstep(0.,.65,yN));
     float spark=smoothstep(thresh,.998,hash(floor(g)+vec2(floor(uTime*.4),1.7)));
     float blob=smoothstep(.5,.05,length(fract(g)-.5));
@@ -178,68 +267,11 @@ void main(){
     float period=max(uRes.x*.6,1.);
     float swell=sin((frag.x+uScroll*period*1.25)/period*6.2831853);
     col*=1.+swell*.04*fore;
-    if(uWake>0.001 && uStern.y>h && uBow.y>h){
-      vec2 sternFrag=vec2(uStern.x*uRes.x,(1.-uStern.y)*uRes.y);
-      vec2 bowFrag=vec2(uBow.x*uRes.x,(1.-uBow.y)*uRes.y);
-      vec2 sternP=planeAt(sternFrag);
-      vec2 bowP=planeAt(bowFrag);
-      vec2 head=bowP-sternP;
-      float headL=length(head);
-      head=headL>1e-4?head/headL:vec2(1.,0.);
-      float cyaw=cos(uYaw),syaw=sin(uYaw);
-      head=vec2(cyaw*head.x-syaw*head.y,syaw*head.x+cyaw*head.y);
-      vec2 aftP=-head;
-      vec2 sideP=vec2(-aftP.y,aftP.x);
-      vec2 jx=planeAt(sternFrag+vec2(1.,0.))-sternP;
-      vec2 jy=planeAt(sternFrag+vec2(0.,1.))-sternP;
-      float det=jx.x*jy.y-jx.y*jy.x;
-      if(abs(det)>1e-5){
-        vec2 aftS=vec2(jy.y*aftP.x-jy.x*aftP.y,-jx.y*aftP.x+jx.x*aftP.y)/det;
-        float aLen=length(aftS);
-        if(aLen>1e-3){
-          vec2 aft=aftS/aLen;
-          vec2 acr=vec2(-aft.y,aft.x);
-          float cs=cos(.340339),sn=sin(.340339);
-          vec2 armP=cs*aftP+sn*sideP;
-          vec2 armS=vec2(jy.y*armP.x-jy.x*armP.y,-jx.y*armP.x+jx.x*armP.y)/det;
-          float spread=abs(dot(armS,acr))/max(abs(dot(armS,aft)),1e-3);
-          spread=clamp(spread,.06,.42);
-          vec2 d=frag-sternFrag;
-          float alongPx=dot(d,aft);
-          float acrossPx=dot(d,acr);
-          float alongVw=alongPx/max(uRes.x,1.);
-          float reach=.35*clamp(uWake,0.,1.);
-          if(alongVw>-0.012 && alongVw<reach){
-            float sternHalf=max(uBeam,.008)*uRes.x;
-            float armLine=sternHalf+max(alongPx,0.)*spread;
-            float armW=mix(.04,.014,smoothstep(.02,.30,alongVw))*uRes.x;
-            float dArm=min(abs(acrossPx-armLine),abs(acrossPx+armLine));
-            float arms=1.-smoothstep(armW*.3,armW,dArm);
-            float centreW=mix(.05,.018,smoothstep(0.,.28,alongVw))*uRes.x;
-            float centre=(1.-smoothstep(centreW*.1,centreW,abs(acrossPx)))*.8;
-            float fillW=armLine+armW*.75;
-            float fill=(1.-smoothstep(fillW*.15,fillW,abs(acrossPx)))*(1.-smoothstep(.05,.16,alongVw));
-            float field=max(arms,max(centre,fill));
-            field*=smoothstep(-.012,.006,alongVw);
-            vec2 adv=vec2(acrossPx,alongPx-uTime*46.);
-            float n1=noise(adv*.01);
-            float n2=noise(adv*.022+3.7);
-            float n3=noise(adv*.042+8.1);
-            float n=n1*.5+n2*.32+n3*.18;
-            float holes=smoothstep(.2,.7,n);
-            float foam=field*mix(.7,1.,holes);
-            float up=smoothstep(0.,.055,alongVw);
-            float down=1.-smoothstep(.055,max(reach,.06),alongVw);
-            float fall=mix(.78,.86,up)*mix(1.,down,step(.055,alongVw));
-            fall*=1.-smoothstep(max(reach-.04,0.),reach,alongVw);
-            float crestW=smoothstep(-.55,.35,crest);
-            float amt=foam*fall;
-            vec3 foamCol=mix(col,vec3(.995,1.,1.),mix(.74,1.,crestW));
-            col=mix(col,foamCol,clamp(amt,0.,1.));
-          }
-        }
-      }
+    if(aroundA>0.001){
+      vec3 emerald=vec3(63.,181.,224.)/255.;
+      col=mix(col,mix(col*1.06,emerald,.5),clamp(aroundA,0.,1.));
     }
+    if(foamA>0.001) col=mix(col,vec3(1.),clamp(foamA,0.,1.));
     float belowPx=(uv.y-h)*uRes.y;
     float hazeW=24.*px;
     vec3 hazeC=vec3(232.,244.,252.)/255.;

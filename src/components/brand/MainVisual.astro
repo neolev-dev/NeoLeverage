@@ -8,13 +8,11 @@ interface Props {
 const { locale } = Astro.props;
 const sub = locale === "ja" ? "成長に、追い風を。" : "A clear morning, and a following wind.";
 const main = {
-  calm: "M168 8C118 120 108 250 128 392L168 400C156 260 154 140 168 8Z",
-  half: "M168 8C70 118 48 260 96 396L168 404C130 268 146 140 168 8Z",
+  rest: "M168 8C126 112 118.8 268 136.8 398L168 408C151.2 270 159 140 168 8Z",
   full: "M168 8C28 112 4 268 64 398L168 408C112 270 138 140 168 8Z",
 };
 const jib = {
-  calm: "M168 96C206 150 214 250 198 348L174 356C196 250 188 150 168 96Z",
-  half: "M168 88C236 146 262 252 228 356L174 364C214 258 196 148 168 88Z",
+  rest: "M168 78C195.6 140 215.4 248 199.2 362L174 372C190.2 260 181.6 146 168 78Z",
   full: "M168 78C260 140 312 248 258 362L174 372C228 260 204 146 168 78Z",
 };
 ---
@@ -127,30 +125,32 @@ const jib = {
         </g>
         <path class="waterline" d="M44 432C108 456 248 450 318 424" />
         <path class="waterline-hi" d="M52 424C112 446 244 440 312 416" />
-        <g class="bow-wave" data-bow fill="url(#mv-bow-foam)">
-          <path d="M321.0 434.1L319.9 434.4L318.8 434.8L317.6 435.2L316.5 435.6L315.4 436.0L314.3 436.3L313.1 436.7L312.0 437.1L310.9 437.5L309.8 437.8L308.6 438.2L307.5 438.6L306.4 438.9L305.3 439.3L304.1 439.6L303.0 440.0L301.9 440.3L300.8 440.7L299.6 441.0L298.5 441.2L297.4 441.5L296.3 441.9L295.1 442.2L294.0 442.5L292.9 442.7L291.8 443.0L290.6 443.3L289.5 443.6L288.4 443.9L287.3 444.1L286.1 444.4L285.0 444.7L283.9 445.0L282.8 445.2L281.6 445.5L280.5 445.8L279.4 445.9L278.3 446.2L277.1 446.5L276.0 446.6L274.9 446.9L273.8 447.2L272.6 447.3L271.5 447.6L270.4 447.9L269.3 448.0L268.1 448.3L267.0 448.5L265.9 448.6L264.8 448.9L263.6 449.0L262.5 449.3L261.4 449.5L260.3 449.6L259.1 449.9L258.0 450.0L258.0 450.8L259.1 451.0L260.3 451.1L261.4 451.3L262.5 451.3L263.6 451.2L264.8 451.3L265.9 451.3L267.0 451.6L268.1 451.6L269.3 451.4L270.4 451.3L271.5 451.3L272.6 451.5L273.8 451.9L274.9 451.9L276.0 451.6L277.1 451.3L278.3 451.2L279.4 451.3L280.5 451.5L281.6 451.1L282.8 450.4L283.9 450.1L285.0 450.1L286.1 450.3L287.3 450.1L288.4 449.9L289.5 449.5L290.6 449.1L291.8 449.0L292.9 448.7L294.0 448.5L295.1 448.0L296.3 447.1L297.4 446.5L298.5 446.3L299.6 446.4L300.8 446.0L301.9 445.3L303.0 444.6L304.1 444.1L305.3 443.9L306.4 443.5L307.5 442.8L308.6 442.0L309.8 441.1L310.9 440.6L312.0 440.1L313.1 439.5L314.3 438.8L315.4 438.1L316.5 437.4L317.6 436.8L318.8 436.2L319.9 435.5L321.0 434.9Z" />
+        <g class="bow-wave" data-bow>
+          <path fill="#ffffff" opacity="0.42" d="M265.2 449.6L268.7 448.9L272.2 448.3L275.6 447.6L279.0 446.9L282.4 446.2L285.7 445.4L289.0 444.7L292.2 443.9L295.4 443.1L298.6 442.3L301.7 441.4L304.8 440.5L307.8 439.6L310.7 438.7L313.6 437.8L316.5 436.8L319.3 435.9L322.0 434.9L319.1 427.0L316.5 428.0L313.8 428.9L311.0 429.8L308.2 430.7L305.3 431.6L302.4 432.5L299.4 433.3L296.4 434.1L293.3 434.9L290.2 435.7L287.1 436.5L283.9 437.2L280.6 438.0L277.3 438.7L274.0 439.4L270.6 440.0L267.2 440.7L263.8 441.3Z" />
+          <path fill="#ffffff" opacity="0.9" d="M265.1 449.0L268.6 448.3L272.1 447.7L275.5 447.0L278.9 446.3L282.3 445.6L285.6 444.8L288.9 444.1L292.1 443.3L295.3 442.5L298.4 441.7L301.5 440.8L304.6 440.0L307.6 439.1L310.5 438.2L313.4 437.2L316.3 436.3L319.1 435.3L321.8 434.3L319.3 427.6L316.7 428.5L314.0 429.5L311.2 430.4L308.4 431.3L305.5 432.2L302.6 433.0L299.6 433.9L296.6 434.7L293.5 435.5L290.4 436.3L287.2 437.1L284.0 437.8L280.7 438.6L277.4 439.3L274.1 439.9L270.7 440.6L267.3 441.3L263.9 441.9Z" />
         </g>
-        <g data-leech>
-          <path data-sail="main" fill="url(#sail-camber)" d={main.calm} data-half={main.half} data-full={main.full} />
-          <path data-sail="jib" fill="url(#sail-camber)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
-          <path class="sail-shade" fill="url(#sail-belly)" d={main.calm} data-half={main.half} data-full={main.full} />
-          <path class="sail-shade" fill="url(#sail-belly)" d={jib.calm} data-half={jib.half} data-full={jib.full} />
+        <g data-rig>
+          <g data-leech>
+            <path data-sail="main" fill="url(#sail-camber)" d={main.rest} data-rest={main.rest} data-full={main.full} />
+            <path data-sail="jib" fill="url(#sail-camber)" d={jib.rest} data-rest={jib.rest} data-full={jib.full} />
+            <path class="sail-shade" fill="url(#sail-belly)" d={main.rest} data-rest={main.rest} data-full={main.full} />
+            <path class="sail-shade" fill="url(#sail-belly)" d={jib.rest} data-rest={jib.rest} data-full={jib.full} />
+          </g>
+          <path class="mast-bar" fill="url(#mast-shade)" d="M167.75 408L172.25 408L171 8L169 8Z" />
+          <path class="mast-hi" fill="#eef3f6" opacity="0.5" d="M171.35 400L171.95 400L170.72 18L170.28 18Z" />
+          <line class="boom-bar" x1="174" y1="408.58" x2="64" y2="398" fill="none" stroke="#9AA4AB" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
         </g>
-        <path class="mast-bar" fill="url(#mast-shade)" d="M167.75 408L172.25 408L171 8L169 8Z" />
-        <path class="mast-hi" fill="#eef3f6" opacity="0.5" d="M171.35 400L171.95 400L170.72 18L170.28 18Z" />
-        <line class="boom-bar" x1="174" y1="408.58" x2="64" y2="398" fill="none" stroke="#9AA4AB" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
         <g class="drops" data-drops fill="#fff">
-          <circle data-drop data-x="304" data-y="428" data-rise="6" data-delay="0" cx="304" cy="428" r="0.8" />
-          <circle data-drop data-x="312" data-y="426" data-rise="8" data-delay="0.03" cx="312" cy="426" r="1.15" />
-          <circle data-drop data-x="318" data-y="430" data-rise="5" data-delay="0.06" cx="318" cy="430" r="0.75" />
-          <circle data-drop data-x="324" data-y="424" data-rise="9" data-delay="0.08" cx="324" cy="424" r="1.5" />
-          <circle data-drop data-x="330" data-y="429" data-rise="7" data-delay="0.11" cx="330" cy="429" r="0.95" />
-          <circle data-drop data-x="336" data-y="425" data-rise="8" data-delay="0.14" cx="336" cy="425" r="1.25" />
-          <circle data-drop data-x="310" data-y="432" data-rise="6" data-delay="0.17" cx="310" cy="432" r="0.85" />
-          <circle data-drop data-x="340" data-y="427" data-rise="9" data-delay="0.2" cx="340" cy="427" r="1.05" />
-          <circle data-drop data-x="328" data-y="423" data-rise="7" data-delay="0.22" cx="328" cy="423" r="1.4" />
-          <circle data-drop data-x="316" data-y="427" data-rise="5" data-delay="0.25" cx="316" cy="427" r="0.8" />
-          <circle data-drop data-x="334" data-y="431" data-rise="8" data-delay="0.28" cx="334" cy="431" r="1.1" />
+          <circle data-drop data-i="0" cx="304" cy="428" r="3.2" />
+          <circle data-drop data-i="1" cx="312" cy="426" r="3.6" />
+          <circle data-drop data-i="2" cx="318" cy="430" r="3.1" />
+          <circle data-drop data-i="3" cx="324" cy="424" r="4.2" />
+          <circle data-drop data-i="4" cx="330" cy="429" r="3.4" />
+          <circle data-drop data-i="5" cx="336" cy="425" r="3.8" />
+          <circle data-drop data-i="6" cx="310" cy="432" r="3.2" />
+          <circle data-drop data-i="7" cx="340" cy="427" r="4.6" />
+          <circle data-drop data-i="8" cx="328" cy="423" r="3.5" />
+          <circle data-drop data-i="9" cx="316" cy="427" r="3.3" />
         </g>
       </g>
     </svg>

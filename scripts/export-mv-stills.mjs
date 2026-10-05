@@ -86,6 +86,9 @@ async function boot() {
       : [0.64, 0.26, 0.43 * (h / w) * (340 / 460), 0.43];
     const stern = boatUv(44, 432, w, h, narrow);
     const bow = boatUv(240, 442, w, h, narrow);
+    const wl0 = boatUv(46, 404, w, h, narrow);
+    const wl1 = boatUv(44, 432, w, h, narrow);
+    const wl2 = boatUv(40, 438, w, h, narrow);
     gl.uniform2f(u("uRes"), w, h);
     gl.uniform1f(u("uTime"), 5);
     gl.uniform1f(u("uWind"), 1);
@@ -100,6 +103,12 @@ async function boot() {
     gl.uniform2f(u("uBow"), bow[0], bow[1]);
     gl.uniform1f(u("uYaw"), 0);
     gl.uniform1f(u("uBeam"), narrow ? 0.02 : 0.014);
+    gl.uniform2f(u("uWl0"), wl0[0], wl0[1]);
+    gl.uniform2f(u("uWl1"), wl1[0], wl1[1]);
+    gl.uniform2f(u("uWl2"), wl2[0], wl2[1]);
+    gl.uniform2f(u("uCursor"), 0.5, 0.7);
+    gl.uniform1f(u("uMouse"), 0);
+    gl.uniform2f(u("uCss"), w, h);
     gl.uniform1f(u("uConverge"), 0);
     gl.uniform1f(u("uGlitter"), 1);
     gl.uniform1f(u("uOct"), 5);

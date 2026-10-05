@@ -570,7 +570,7 @@ html[data-tier="0"] .bow-wave,
 }
 .distant-b {
   left: 30%;
-  top: calc(56% - 7.5vh * 0.9);
+  top: calc(56% + 6px - 6vh);
   height: 7.5vh;
   opacity: 0.68;
 }
@@ -598,9 +598,9 @@ html[data-tier="0"] .bow-wave,
   animation: none;
   transform: scaleY(1);
 }
-.gull:nth-child(1) { top: 20%; left: 58%; width: 30px; opacity: 0.9; }
-.gull:nth-child(2) { top: 30%; left: 72%; width: 24px; opacity: 0.8; }
-.gull:nth-child(3) { top: 24%; left: 84%; width: 18px; opacity: 0.7; }
+.gull:nth-child(1) { top: 20%; left: 58%; width: 34px; opacity: 0.9; }
+.gull:nth-child(2) { top: 30%; left: 72%; width: 28px; opacity: 0.8; }
+.gull:nth-child(3) { top: 24%; left: 84%; width: 22px; opacity: 0.7; }
 @keyframes gull-flap {
   0%, 28% { transform: scaleY(1); }
   46% { transform: scaleY(0.18); }
@@ -727,9 +727,9 @@ h1.mv-brand {
 .mv-divider.is-drawn { transform: none; }
 html[data-tier="0"] .mv-gl { display: none; }
 html[data-tier="0"] .wind-trail,
-.mv.is-settled .wind-trail { opacity: 0.85; }
+.mv.is-settled .wind-trail { opacity: 0.95; }
 html[data-tier="0"] .wind-trail.is-hot,
-.mv.is-settled .wind-trail.is-hot { opacity: 0.7; }
+.mv.is-settled .wind-trail.is-hot { opacity: 0.8; }
 
 @media (min-width: 1024px) {
   .section { grid-template-columns: repeat(12, 1fr); column-gap: 24px; }
@@ -783,8 +783,8 @@ html[data-tier="0"] .wind-trail.is-hot,
 @media (prefers-reduced-motion: reduce) {
   .btn::after, .row:hover .row-title, .card:hover h3 { transition: none; transform: none; }
   .mv-gl { display: none; }
-  .mv-wind .wind-trail { opacity: 0.85; }
-  .mv-wind .wind-trail.is-hot { opacity: 0.7; }
+  .mv-wind .wind-trail { opacity: 0.95; }
+  .mv-wind .wind-trail.is-hot { opacity: 0.8; }
   .gull svg, .mv-scroll i::after { animation: none; }
   .mv-divider { transform: none; }
   .dont-item s { background-size: 100% 1px; }
