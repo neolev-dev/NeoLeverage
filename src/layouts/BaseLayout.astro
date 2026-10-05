@@ -1,0 +1,149 @@
+---
+import "../styles/global.css";
+import Header from "../components/layout/Header.astro";
+import Footer from "../components/layout/Footer.astro";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { SITE, gtmId } from "../lib/site";
+import { getContent } from "../lib/microcms/client";
+import type { Crumb } from "../lib/seo/jsonld";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  path: string;
+  enPath?: string | null;
+  noindex?: boolean;
+  ogType?: "website" | "article";
+  ogImage?: string;
+  jsonLd?: string | null;
+  home?: boolean;
+  alternate?: boolean;
+}
+
+const {
+  locale,
+  title,
+  description,
+  path,
+  enPath = path,
+  noindex = false,
+  ogType = "website",
+  ogImage = absoluteUrl(SITE.defaultOgPath),
+  jsonLd = null,
+  home = false,
+  alternate = true,
+} = Astro.props;
+
+const content = await getContent();
+const canonicalPath = localePath(locale, path);
+const canonical = absoluteUrl(canonicalPath);
+const copy = t(locale);
+const gtm = gtmId();
+const paired = enPath !== null;
+const jaHref = absoluteUrl(localePath("ja", path));
+const enHref = paired ? absoluteUrl(localePath("en", enPath ?? path)) : null;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="max-image-preview:large" />}
+    {paired && !noindex && alternate && (
+      <>
+        <link rel="alternate" hreflang="ja" href={jaHref} />
+        <link rel="alternate" hreflang="en" href={enHref} />
+        <link rel="alternate" hreflang="x-default" href={jaHref} />
+      </>
+    )}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={locale === "ja" ? SITE.legalNameJa : SITE.legalNameEn} />
+    <meta property="og:locale" content={locale === "ja" ? "ja_JP" : "en_US"} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    {(path === "/trends" || path.startsWith("/trends/category/")) && (
+      <link rel="alternate" type="application/rss+xml" title="Trends" href={absoluteUrl("/trends/rss.xml")} />
+    )}
+    <link rel="preload" href="/fonts/outfit-display.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high" />
+    <link rel="preload" href="/fonts/zen-kaku-500.woff2" as="font" type="font/woff2" crossorigin />
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
+    <script is:inline>
+      (function () {
+        var q = new URLSearchParams(location.search);
+        var asked = q.get("tier");
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var cores = navigator.hardwareConcurrency || 8;
+        var memory = navigator.deviceMemory || 8;
+        var save = navigator.connection && navigator.connection.saveData;
+        var coarse = window.matchMedia("(pointer: coarse)").matches;
+        var tier = "3";
+        if (asked === "0" || asked === "1" || asked === "2" || asked === "3") tier = asked;
+        else if (reduce) tier = "0";
+        else if (save || memory <= 2 || cores <= 4) tier = "1";
+        else if (coarse) tier = "2";
+        document.documentElement.dataset.tier = tier;
+        if (tier === "0" || tier === "1") {
+          var narrow = window.matchMedia("(max-width: 800px)").matches;
+          var set = narrow
+            ? "/mv/sp-1080.avif 1080w"
+            : "/mv/pc-1280.avif 1280w, /mv/pc-1920.avif 1920w, /mv/pc-2560.avif 2560w";
+          var link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = narrow ? "/mv/sp-1080.avif" : "/mv/pc-1280.avif";
+          link.setAttribute("imagesrcset", set);
+          link.setAttribute("imagesizes", "100vw");
+          link.setAttribute("fetchpriority", "high");
+          document.head.appendChild(link);
+        }
+      })();
+    </script>
+    {gtm && (
+      <script is:inline define:vars={{ gtm }}>
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtm.js?id=" + gtm;
+        document.head.appendChild(s);
+      </script>
+    )}
+  </head>
+  <body>
+    <script is:inline>
+      if (document.fonts && document.fonts.load) document.fonts.load('520 16px "Outfit Display"');
+    </script>
+    {gtm && (
+      <noscript>
+        <iframe src={`https://www.googletagmanager.com/ns.html?id=${gtm}`} height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe>
+      </noscript>
+    )}
+    <a class="skip" href="#content">{copy.skip}</a>
+    <Header locale={locale} path={path} enPath={enPath} />
+    <main id="content" class:list={{ "is-home": home }}>
+      <slot />
+    </main>
+    <Footer locale={locale} settings={content.settings} />
+    <script>
+      import { bootSite } from "../animations/site";
+      bootSite();
+    </script>
+  </body>
+</html>

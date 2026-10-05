@@ -1,0 +1,174 @@
+---
+import { turnstileSiteKey } from "../../lib/site";
+import { t } from "../../lib/i18n/ui";
+import type { Locale } from "../../lib/i18n/locale";
+
+interface Props {
+  locale: Locale;
+  topic?: string;
+}
+
+const { locale, topic = "" } = Astro.props;
+const copy = t(locale);
+const siteKey = turnstileSiteKey();
+const topics = Object.entries(copy.formTopics);
+---
+
+<form class="form" data-contact data-locale={locale} action="/api/contact" method="post" novalidate>
+  <p class="meta" data-progress>{locale === "ja" ? "1 入力 → 2 確認 → 3 完了" : "1 Write → 2 Review → 3 Done"}</p>
+  <div data-step="edit">
+    <div class="field">
+      <label for="name">{copy.formName} <span>{copy.formRequired}</span></label>
+      <input id="name" name="name" autocomplete="name" required maxlength="80" />
+      <p class="field-error" data-error="name" hidden>{copy.formErrors.name}</p>
+    </div>
+    <div class="field">
+      <label for="company">{copy.formCompany} <span>{copy.formOptional}</span></label>
+      <input id="company" name="company" autocomplete="organization" maxlength="120" />
+    </div>
+    <div class="field">
+      <label for="email">{copy.formEmail} <span>{copy.formRequired}</span></label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="120" />
+      <p class="field-error" data-error="email" hidden>{copy.formErrors.email}</p>
+    </div>
+    <div class="field">
+      <label for="phone">{copy.formPhone} <span>{copy.formOptional}</span></label>
+      <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="40" />
+    </div>
+    <div class="field">
+      <label for="topic">{copy.formTopic} <span>{copy.formRequired}</span></label>
+      <select id="topic" name="topic" required>
+        <option value="">{copy.formTopic}</option>
+        {topics.map(([value, label]) => <option value={value} selected={value === topic}>{label}</option>)}
+      </select>
+      <p class="field-error" data-error="topic" hidden>{copy.formErrors.topic}</p>
+    </div>
+    <div class="field">
+      <label for="message">{copy.formMessage} <span>{copy.formRequired}</span></label>
+      <textarea id="message" name="message" required maxlength="4000"></textarea>
+      <p class="field-error" data-error="message" hidden>{copy.formErrors.message}</p>
+    </div>
+    <div class="hp" aria-hidden="true">
+      <label for="website">Website</label>
+      <input id="website" name="website" tabindex="-1" autocomplete="off" />
+    </div>
+    <input type="hidden" name="locale" value={locale} />
+    <input type="hidden" name="startedAt" value="" data-started />
+    {siteKey ? (
+      <div class="cf-turnstile" data-sitekey={siteKey}></div>
+    ) : (
+      <p class="meta">{copy.turnstileOff}</p>
+    )}
+    <p class="field-error" data-error="form" hidden>{copy.formErrors.send}</p>
+    <button class="btn btn-accent" type="submit">{copy.formNext}</button>
+  </div>
+  <div data-step="confirm" hidden>
+    <h2>{copy.formConfirm}</h2>
+    <dl class="confirm-list" data-summary></dl>
+    <div class="actions">
+      <button class="btn btn-ghost" type="button" data-back>{copy.formBack}</button>
+      <button class="btn btn-accent" type="button" data-send>{copy.formSend}</button>
+    </div>
+  </div>
+</form>
+{siteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-contact]");
+  if (!form) throw new Error("form");
+  const edit = form.querySelector<HTMLElement>("[data-step=edit]");
+  const confirm = form.querySelector<HTMLElement>("[data-step=confirm]");
+  const summary = form.querySelector<HTMLElement>("[data-summary]");
+  const started = form.querySelector<HTMLInputElement>("[data-started]");
+  if (started) started.value = String(Date.now());
+  const locale = form.dataset.locale === "en" ? "en" : "ja";
+  const labels = locale === "ja"
+    ? ["お名前", "会社名", "E-mail", "電話番号", "ご用件の種類", "ご用件"]
+    : ["Name", "Company", "Email", "Phone", "Topic", "Message"];
+
+  const showError = (name: string, visible: boolean) => {
+    const node = form.querySelector<HTMLElement>(`[data-error="${name}"]`);
+    if (node) node.hidden = !visible;
+  };
+
+  const read = () => ({
+    name: (form.querySelector<HTMLInputElement>("#name")?.value ?? "").trim(),
+    company: (form.querySelector<HTMLInputElement>("#company")?.value ?? "").trim(),
+    email: (form.querySelector<HTMLInputElement>("#email")?.value ?? "").trim(),
+    phone: (form.querySelector<HTMLInputElement>("#phone")?.value ?? "").trim(),
+    topic: form.querySelector<HTMLSelectElement>("#topic")?.value ?? "",
+    message: (form.querySelector<HTMLTextAreaElement>("#message")?.value ?? "").trim(),
+    website: form.querySelector<HTMLInputElement>("#website")?.value ?? "",
+    startedAt: Number(started?.value ?? Date.now()),
+    locale,
+    turnstileToken: form.querySelector<HTMLInputElement>("[name=cf-turnstile-response]")?.value ?? "",
+  });
+
+  const validate = () => {
+    const value = read();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email);
+    showError("name", !value.name);
+    showError("email", !emailOk);
+    showError("topic", !value.topic);
+    showError("message", !value.message);
+    return Boolean(value.name && emailOk && value.topic && value.message);
+  };
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!validate() || !summary || !edit || !confirm) return;
+    const value = read();
+    const topicLabel = form.querySelector<HTMLSelectElement>("#topic")?.selectedOptions[0]?.textContent ?? value.topic;
+    const rows = [value.name, value.company, value.email, value.phone, topicLabel, value.message];
+    summary.innerHTML = "";
+    rows.forEach((text, index) => {
+      const item = document.createElement("div");
+      const label = document.createElement("dt");
+      label.textContent = labels[index] ?? "";
+      const body = document.createElement("dd");
+      body.textContent = text || "—";
+      item.append(label, body);
+      summary.append(item);
+    });
+    edit.hidden = true;
+    confirm.hidden = false;
+    confirm.querySelector("button")?.focus();
+  });
+
+  form.querySelector("[data-back]")?.addEventListener("click", () => {
+    if (!edit || !confirm) return;
+    confirm.hidden = true;
+    edit.hidden = false;
+  });
+
+  form.querySelector("[data-send]")?.addEventListener("click", async () => {
+    const button = form.querySelector<HTMLButtonElement>("[data-send]");
+    if (!button) return;
+    button.disabled = true;
+    const value = read();
+    const thanks = locale === "en" ? "/en/contact/thanks" : "/contact/thanks";
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(value),
+      });
+      if (response.ok || response.status === 404) {
+        const payload = response.ok ? await response.json().catch(() => ({ mocked: true })) : { mocked: true };
+        sessionStorage.setItem("nl-contact", payload.mocked ? "mock" : "sent");
+        window.location.href = thanks;
+        return;
+      }
+    } catch {
+      sessionStorage.setItem("nl-contact", "mock");
+      window.location.href = thanks;
+      return;
+    }
+    showError("form", true);
+    button.disabled = false;
+    if (edit && confirm) {
+      confirm.hidden = true;
+      edit.hidden = false;
+    }
+  });
+</script>

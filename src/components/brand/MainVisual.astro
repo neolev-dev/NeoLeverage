@@ -1,0 +1,176 @@
+---
+import type { Locale } from "../../lib/i18n/locale";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const sub = locale === "ja" ? "成長に、追い風を。" : "A clear morning, and a following wind.";
+const main = {
+  rest: "M168 8C126 112 118.8 268 136.8 398L168 408C151.2 270 159 140 168 8Z",
+  full: "M168 8C28 112 4 268 64 398L168 408C112 270 138 140 168 8Z",
+};
+const jib = {
+  rest: "M168 78C195.6 140 215.4 248 199.2 362L174 372C190.2 260 181.6 146 168 78Z",
+  full: "M168 78C260 140 312 248 258 362L174 372C228 260 204 146 168 78Z",
+};
+---
+
+<section class="mv" data-motion="MO-HOME-01" data-mv aria-label="Tailwinds For Your Growth">
+  <div class="mv-sky" aria-hidden="true"></div>
+  <canvas class="mv-gl" aria-hidden="true"></canvas>
+  <noscript>
+    <picture>
+      <source media="(max-width: 800px)" srcset="/mv/sp-1080.avif" type="image/avif" />
+      <source media="(max-width: 800px)" srcset="/mv/sp-1080.webp" type="image/webp" />
+      <source type="image/avif" srcset="/mv/pc-1280.avif 1280w, /mv/pc-1920.avif 1920w, /mv/pc-2560.avif 2560w" sizes="100vw" />
+      <img class="mv-still" src="/mv/pc-1280.webp" alt="" />
+    </picture>
+  </noscript>
+  <div class="mv-fleet" data-fleet aria-hidden="true">
+    <svg class="distant" viewBox="0 0 80 70">
+      <path fill="#ffffff" d="M40 4C28 24 22 42 28 56H40C34 38 34 18 40 4Z" />
+      <path fill="#fff6e0" fill-opacity="0.9" d="M40 16C52 30 58 44 52 56H40C46 40 44 26 40 16Z" />
+      <path fill="#e7f4fb" d="M18 56C32 52 54 52 70 56L64 64C46 68 28 68 14 60Z" />
+    </svg>
+    <svg class="distant distant-b" viewBox="0 0 80 70">
+      <path fill="#ffffff" d="M40 8C30 26 24 42 30 56H40C36 40 36 22 40 8Z" />
+      <path fill="#fff4d8" fill-opacity="0.8" d="M40 18C50 32 56 44 50 56H40C46 40 44 28 40 18Z" />
+      <path fill="#e3f1f8" d="M20 56C34 52 52 52 66 56L60 63C44 66 30 66 16 60Z" />
+    </svg>
+  </div>
+  <div class="mv-gulls" aria-hidden="true">
+    <span class="gull" style="--flap:0.9s;--delay:0s;--count:6">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
+    <span class="gull" style="--flap:1.1s;--delay:0.35s;--count:5">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
+    <span class="gull gull-c" style="--flap:1.3s;--delay:0.7s;--count:4">
+      <svg viewBox="0 0 30 12"><path d="M1 7c5-5 9-5 14 0M15 7c5-5 9-5 14 0" /></svg>
+    </span>
+  </div>
+  <div class="mv-boat" data-boat>
+    <div class="keel-shadow" aria-hidden="true"></div>
+    <svg class="boat-svg" viewBox="0 0 340 460" aria-hidden="true">
+      <defs>
+        <linearGradient id="sail-camber" x1="0" y1="0.15" x2="1" y2="0">
+          <stop offset="0" stop-color="#c5daf0" stop-opacity="0.78" />
+          <stop offset="0.32" stop-color="#f7fbfe" stop-opacity="0.94" />
+          <stop offset="0.58" stop-color="#ffffff" stop-opacity="0.99" />
+          <stop offset="0.82" stop-color="#fff3d4" stop-opacity="0.62" />
+          <stop offset="1" stop-color="#ffe4b0" stop-opacity="0.34" />
+        </linearGradient>
+        <radialGradient id="sail-belly" cx="0.66" cy="0.42" r="0.58">
+          <stop offset="0" stop-color="#fff6e4" stop-opacity="0.45" />
+          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.12" />
+          <stop offset="1" stop-color="#d5e6f4" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="hull-form" x1="0.92" y1="0" x2="0.08" y2="1">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.22" stop-color="#f7fbfd" />
+          <stop offset="0.5" stop-color="#e4eef4" />
+          <stop offset="0.74" stop-color="#b5c8d4" />
+          <stop offset="1" stop-color="#8ea3b0" />
+        </linearGradient>
+        <linearGradient id="mast-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5E6B74" />
+          <stop offset="0.46" stop-color="#7E8C96" />
+          <stop offset="0.78" stop-color="#9AA8B2" />
+          <stop offset="1" stop-color="#C5D0D6" />
+        </linearGradient>
+        <filter id="mv-foam" filterUnits="userSpaceOnUse" x="260" y="390" width="120" height="60">
+          <feGaussianBlur stdDeviation="0.55" />
+        </filter>
+        <filter id="mv-spray" filterUnits="userSpaceOnUse" x="300" y="330" width="100" height="110">
+          <feGaussianBlur stdDeviation="0.45" />
+        </filter>
+        <linearGradient id="hull-sheer" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.7" />
+          <stop offset="0.16" stop-color="#ffffff" stop-opacity="0.12" />
+          <stop offset="0.62" stop-color="#163e54" stop-opacity="0" />
+          <stop offset="1" stop-color="#14384c" stop-opacity="0.22" />
+        </linearGradient>
+        <linearGradient id="mv-bow-foam" gradientUnits="userSpaceOnUse" x1="258" y1="430" x2="324" y2="422">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.4" />
+          <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.86" />
+          <stop offset="0.36" stop-color="#ffffff" stop-opacity="0.48" />
+          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.95" />
+          <stop offset="0.74" stop-color="#ffffff" stop-opacity="0.42" />
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0.72" />
+        </linearGradient>
+        <filter id="mv-refl-blur" filterUnits="userSpaceOnUse" x="-60" y="340" width="500" height="300">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+        <filter id="mv-edge-blur" x="-8%" y="-8%" width="116%" height="116%">
+          <feGaussianBlur stdDeviation="2" />
+        </filter>
+        <mask id="mv-wet" maskUnits="userSpaceOnUse" x="-20" y="0" width="400" height="480">
+          <rect x="-20" y="0" width="400" height="480" fill="#fff" />
+          <path filter="url(#mv-edge-blur)" fill="#000" d="M-20 430C70 468 250 462 360 416L360 490L-20 490Z" />
+        </mask>
+      </defs>
+      <g class="boat-reflect">
+        <g opacity="0.22" filter="url(#mv-refl-blur)" transform="translate(0 432) scale(1 -0.4) translate(0 -432)">
+          <use href="#mv-boat-draw" />
+        </g>
+      </g>
+      <g id="mv-boat-draw">
+        <g mask="url(#mv-wet)">
+          <path class="hull" fill="url(#hull-form)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
+          <path fill="url(#hull-sheer)" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348L320 428C246 456 108 462 40 438Z" />
+          <path class="stripe" d="M52 400C98 386 146 394 172 390C234 382 296 364 328 350" />
+          <path class="deck-edge" d="M46 404C92 388 140 396 170 392C236 384 300 364 334 348" />
+        </g>
+        <path class="waterline" d="M44 432C108 456 248 450 318 424" />
+        <path class="waterline-hi" d="M52 424C112 446 244 440 312 416" />
+        <g class="bow-wave" data-bow>
+          <path fill="#ffffff" opacity="0.42" d="M265.2 449.6L268.7 448.9L272.2 448.3L275.6 447.6L279.0 446.9L282.4 446.2L285.7 445.4L289.0 444.7L292.2 443.9L295.4 443.1L298.6 442.3L301.7 441.4L304.8 440.5L307.8 439.6L310.7 438.7L313.6 437.8L316.5 436.8L319.3 435.9L322.0 434.9L319.1 427.0L316.5 428.0L313.8 428.9L311.0 429.8L308.2 430.7L305.3 431.6L302.4 432.5L299.4 433.3L296.4 434.1L293.3 434.9L290.2 435.7L287.1 436.5L283.9 437.2L280.6 438.0L277.3 438.7L274.0 439.4L270.6 440.0L267.2 440.7L263.8 441.3Z" />
+          <path fill="#ffffff" opacity="0.9" d="M265.1 449.0L268.6 448.3L272.1 447.7L275.5 447.0L278.9 446.3L282.3 445.6L285.6 444.8L288.9 444.1L292.1 443.3L295.3 442.5L298.4 441.7L301.5 440.8L304.6 440.0L307.6 439.1L310.5 438.2L313.4 437.2L316.3 436.3L319.1 435.3L321.8 434.3L319.3 427.6L316.7 428.5L314.0 429.5L311.2 430.4L308.4 431.3L305.5 432.2L302.6 433.0L299.6 433.9L296.6 434.7L293.5 435.5L290.4 436.3L287.2 437.1L284.0 437.8L280.7 438.6L277.4 439.3L274.1 439.9L270.7 440.6L267.3 441.3L263.9 441.9Z" />
+        </g>
+        <g data-rig>
+          <g data-leech>
+            <path data-sail="main" fill="url(#sail-camber)" d={main.rest} data-rest={main.rest} data-full={main.full} />
+            <path data-sail="jib" fill="url(#sail-camber)" d={jib.rest} data-rest={jib.rest} data-full={jib.full} />
+            <path class="sail-shade" fill="url(#sail-belly)" d={main.rest} data-rest={main.rest} data-full={main.full} />
+            <path class="sail-shade" fill="url(#sail-belly)" d={jib.rest} data-rest={jib.rest} data-full={jib.full} />
+          </g>
+          <path class="mast-bar" fill="url(#mast-shade)" d="M167.75 408L172.25 408L171 8L169 8Z" />
+          <path class="mast-hi" fill="#eef3f6" opacity="0.5" d="M171.35 400L171.95 400L170.72 18L170.28 18Z" />
+          <line class="boom-bar" x1="174" y1="408.58" x2="64" y2="398" fill="none" stroke="#9AA4AB" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+        </g>
+        <g class="drops" data-drops fill="#fff">
+          <circle data-drop data-i="0" cx="304" cy="428" r="3.2" />
+          <circle data-drop data-i="1" cx="312" cy="426" r="3.6" />
+          <circle data-drop data-i="2" cx="318" cy="430" r="3.1" />
+          <circle data-drop data-i="3" cx="324" cy="424" r="4.2" />
+          <circle data-drop data-i="4" cx="330" cy="429" r="3.4" />
+          <circle data-drop data-i="5" cx="336" cy="425" r="3.8" />
+          <circle data-drop data-i="6" cx="310" cy="432" r="3.2" />
+          <circle data-drop data-i="7" cx="340" cy="427" r="4.6" />
+          <circle data-drop data-i="8" cx="328" cy="423" r="3.5" />
+          <circle data-drop data-i="9" cx="316" cy="427" r="3.3" />
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="mv-wind" aria-hidden="true">
+    <span class="wind-trail" style="--y:18%;--x:64%"><i style="--w:18vw;--rot:-8deg"></i></span>
+    <span class="wind-trail is-hot" style="--y:26%;--x:70%"><i style="--w:14vw;--rot:-12deg"></i></span>
+  </div>
+  <div class="mv-copy" data-copy>
+    <h1 class="mv-brand" lang="en">
+      <span class="mv-line">Tailwinds</span>
+      <span class="mv-line mv-rest"><span class="mv-for">For Your</span> <span class="mv-growth">Grow<span class="k-wt">t</span>h</span></span>
+    </h1>
+    <p class="mv-sub mv-ja">{sub}</p>
+  </div>
+  <a class="mv-scroll" href="#values"><span>SCROLL</span><i aria-hidden="true"></i></a>
+  <div class="mv-divider" data-divider data-motion="MO-HOME-03" aria-hidden="true"></div>
+  <script>
+    import { bootMv } from "../../animations/mv";
+    const root = document.querySelector<HTMLElement>("[data-mv]");
+    if (root) requestAnimationFrame(() => requestAnimationFrame(() => { void bootMv(root); }));
+  </script>
+</section>

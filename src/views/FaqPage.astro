@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, faqNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const ja = locale === "ja";
+const title = ja ? "よくあるご質問｜NeoLeverage株式会社" : "FAQ | NeoLeverage Inc.";
+const description = ja
+  ? "対応範囲、AIの使い方、見積り、遠方からの相談についての質問です。"
+  : "Questions on scope, how AI is used, estimates, and working remotely.";
+const path = "/faq";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.faq, href: localePath(locale, path) },
+];
+const faqs = content.faqs.filter((faq) => faq.scope.includes("general"));
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+  faqNode(canonical, faqs, locale),
+]);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">FAQ</p>
+      <h1>{copy.faq}</h1>
+    </div>
+    <div class="faq-list">
+      {faqs.map((faq, index) => (
+        <article>
+          <p class="num">{String(index + 1).padStart(2, "0")}</p>
+          <h2>{ja ? faq.question_ja : faq.question_en}</h2>
+          <p>{ja ? faq.answer_ja : faq.answer_en}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

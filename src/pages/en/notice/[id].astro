@@ -1,0 +1,13 @@
+---
+import NoticeArticle from "../../../views/NoticeArticle.astro";
+import { getContent } from "../../../lib/microcms/client";
+import { noticeHasEnglish } from "../../../lib/microcms/mock";
+
+export async function getStaticPaths() {
+  const content = await getContent();
+  return content.notices.filter(noticeHasEnglish).map((item) => ({ params: { id: item.slug } }));
+}
+
+const { id } = Astro.params;
+---
+<NoticeArticle locale="en" slug={id ?? ""} />

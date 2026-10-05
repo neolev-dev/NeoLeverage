@@ -1,0 +1,85 @@
+---
+import { getImage } from "astro:assets";
+import cover from "../assets/covers/horizon.png";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { isRemoteMedia, absoluteAsset } from "../lib/images/media";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, editorialNode, graph, insightArticle, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale; slug: string }
+const { locale, slug } = Astro.props;
+const content = await getContent();
+const insight = content.insights.find((item) => item.slug === slug);
+if (!insight) throw new Error(slug);
+const copy = t(locale);
+const ja = locale === "ja";
+const category = content.categories.find((item) => item.slug === insight.category);
+const title = `${ja ? insight.title_ja : insight.title_en}${ja ? " - NeoLeverage Trends（ネオレバレッジ）" : " - NeoLeverage Trends"}`;
+const description = ja ? insight.seo_ja.seo_description : insight.seo_en.seo_description;
+const path = `/trends/${slug}`;
+const canonical = absoluteUrl(localePath(locale, path));
+const noindex = ja ? Boolean(insight.seo_ja.noindex) : Boolean(insight.seo_en.noindex);
+const remote = isRemoteMedia(insight.eyecatch_url);
+const image = remote
+  ? await getImage({ src: insight.eyecatch_url, width: insight.eyecatch_width || 1200, height: insight.eyecatch_height || 800, format: "webp" })
+  : await getImage({ src: cover, width: 1200, height: 800, format: "webp" });
+const imageUrl = absoluteAsset(image.src, Astro.site);
+const alt = ja ? insight.eyecatch_alt_ja : insight.eyecatch_alt_en;
+const label = ja ? insight.seo_ja.breadcrumb_label || insight.title_ja : insight.seo_en.breadcrumb_label || insight.title_en;
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: "Trends", href: localePath(locale, "/trends") },
+  { name: category ? (ja ? category.name_ja : category.name_en) : insight.category, href: localePath(locale, `/trends/category/${insight.category}`) },
+  { name: label, href: localePath(locale, path) },
+];
+const jsonLd = noindex ? null : graph([
+  ...organizationGraph(content.settings, locale),
+  editorialNode(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+  insightArticle(insight, locale, canonical, imageUrl),
+]);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} enPath={path} noindex={noindex} alternate={false} ogType="article" ogImage={imageUrl} jsonLd={jsonLd}>
+  <div class="read-bar" data-read-bar></div>
+  <article class="page article">
+    <nav class="toc" aria-label={ja ? "目次" : "Contents"}>
+      <p class="meta">{ja ? "目次" : "Contents"}</p>
+      <a href="#summary">{copy.summary}</a>
+      <a href="#view">{ja ? "NeoLeverageの視点" : "NeoLeverage’s view"}</a>
+      <a href="#sources">{ja ? "出典" : "Sources"}</a>
+    </nav>
+    <div class="article-body">
+      <Breadcrumb items={crumbs} />
+      <p class="meta">{insight.published_at} · {category ? (ja ? category.name_ja : category.name_en) : insight.category} · {ja ? content.settings.editorial_name_ja : content.settings.editorial_name_en}</p>
+      <h1>{ja ? insight.title_ja : insight.title_en}</h1>
+      <p class="meta"><a href={localePath(locale, "/editorial-policy")}>{copy.readPolicy}</a></p>
+      <div class="figure wide">
+        <img src={image.src} width={image.attributes.width} height={image.attributes.height} alt={alt} />
+        <span>{ja ? "イメージ" : "Image"}</span>
+      </div>
+      <section class="note" id="summary">
+        <h2>{copy.summary}</h2>
+        <p>{ja ? insight.lead_ja : (insight.lead_en || copy.trendPending)}</p>
+      </section>
+      <section class="note is-view" id="view">
+        <h2>{ja ? "NeoLeverageの視点" : "NeoLeverage’s view"}</h2>
+        <p>{ja ? insight.aio_ja.summary : copy.trendPending}</p>
+      </section>
+      <div class="prose">
+        {insight.body_pending && <p class="placeholder-note" data-placeholder="true"><b>{copy.placeholder}</b>{copy.trendPending}</p>}
+      </div>
+      <section id="sources">
+        <h2>{ja ? "出典" : "Sources"}</h2>
+        <ol class="sources">
+          <li><span class="num">01</span> {ja ? "本文と出典は移行前です。" : "Body and sources are not migrated yet."}</li>
+        </ol>
+      </section>
+      <p><a href={localePath(locale, "/trends")}>{copy.backToList}</a></p>
+    </div>
+  </article>
+</BaseLayout>

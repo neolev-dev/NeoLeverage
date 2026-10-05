@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { noticeHasEnglish } from "../lib/microcms/mock";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, noticeArticle, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale; slug: string }
+const { locale, slug } = Astro.props;
+const content = await getContent();
+const notice = content.notices.find((item) => item.slug === slug);
+if (!notice) throw new Error(slug);
+if (locale === "en" && !noticeHasEnglish(notice)) throw new Error(`No English notice ${slug}`);
+const copy = t(locale);
+const ja = locale === "ja";
+const label = ja ? notice.seo_ja.breadcrumb_label || notice.title_ja : notice.seo_en?.breadcrumb_label || notice.title_en || notice.title_ja;
+const title = `${label}${ja ? "｜NeoLeverage株式会社" : " | NeoLeverage Inc."}`;
+const description = ja ? notice.seo_ja.seo_description : notice.seo_en?.seo_description || "";
+const path = `/notice/${slug}`;
+const canonical = absoluteUrl(localePath(locale, path));
+const enAvailable = noticeHasEnglish(notice);
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.notice, href: localePath(locale, "/notice") },
+  { name: label, href: localePath(locale, path) },
+];
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+  noticeArticle(notice, locale, canonical),
+]);
+const body = ja ? notice.body_ja : notice.body_en || [];
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} enPath={enAvailable ? path : null} ogType="article" jsonLd={jsonLd}>
+  <article class="page prose">
+    <Breadcrumb items={crumbs} />
+    <p class="meta">{notice.date}</p>
+    <h1>{ja ? notice.title_ja : notice.title_en}</h1>
+    {body.map((paragraph) => <p>{paragraph}</p>)}
+    <p><a href={localePath(locale, "/notice")}>{copy.backToList}</a></p>
+  </article>
+</BaseLayout>

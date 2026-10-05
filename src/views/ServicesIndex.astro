@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, faqNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const title = locale === "ja" ? "事業紹介・サービス紹介｜NeoLeverage株式会社" : "Services | NeoLeverage Inc.";
+const description = locale === "ja"
+  ? "3つの領域をてこに、価値創出の流れをつくる。クリエイティブ、マーケティング、AIを、分業でなく統合して扱います。"
+  : "Three areas used as levers. Creative, marketing, and AI are handled together, not as separate catalogs.";
+const path = "/services";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.services, href: localePath(locale, path) },
+];
+const faqs = content.faqs.filter((faq) => faq.scope.includes("general"));
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+  faqNode(canonical, faqs, locale),
+  {
+    "@type": "ItemList",
+    itemListElement: content.services.map((service, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: locale === "ja" ? service.name_ja : service.name_en,
+      url: absoluteUrl(localePath(locale, `/services/${service.slug}`)),
+    })),
+  },
+]);
+const areas = [...content.areas].sort((a, b) => a.order - b.order);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <div class="mast">
+      <Breadcrumb items={crumbs} />
+      <p class="kicker">Services</p>
+      <h1>{locale === "ja" ? "3つの領域を「てこ」に、価値創出の流れをつくる。" : "Three areas, used as levers."}</h1>
+      <p class="lead">{locale === "ja" ? "ネオレバレッジは、クリエイティブ・マーケティング・テクノロジーを横断し、事業とプロダクトの成長を目的に、設計から実行まで一体で支援します。分業でなく統合し、掛け合わさることで、スピードと再現性のある成果を生み出します。" : "NeoLeverage works across creative, marketing, and technology, from design through execution. The areas can be commissioned alone. They do their real work together."}</p>
+    </div>
+
+    {areas.map((area) => {
+      const services = content.services.filter((service) => service.area === area.slug);
+      const ja = locale === "ja";
+      return (
+        <section class="section" id={area.anchor}>
+          <div class="section-head">
+            <p class="display-sm" lang="en" data-parallax>{area.name_en}</p>
+            <h2>{ja ? area.name_ja : area.name_en}</h2>
+            <p class="lead">{ja ? area.lead_ja : area.lead_en}</p>
+          </div>
+          <div class="rows">
+            {services.map((service, index) => (
+              <a class="row" href={localePath(locale, `/services/${service.slug}`)}>
+                <span class="num">{String(index + 1).padStart(2, "0")}</span>
+                <span>
+                  <h3>{ja ? service.name_ja : service.name_en}</h3>
+                  <p>{ja ? service.tailwind_benefit_ja : service.tailwind_benefit_en}</p>
+                </span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+
+    <section class="section" id="how">
+      <h2>{copy.howTitle}</h2>
+      <p>{copy.howLead}</p>
+      <p>{locale === "ja" ? content.settings.quote_policy_ja : content.settings.quote_policy_en}</p>
+      <p>{locale === "ja" ? "期間の目安は、内容を伺ったうえでお伝えします。内容により変わります。" : "Timing is shared after we hear the work. It changes with the scope."}</p>
+    </section>
+    <section class="section">
+      <div class="section-head">
+        <p class="en-label" lang="en">FAQ</p>
+        <h2>{copy.faq}</h2>
+      </div>
+      <div class="faq-list">
+        {faqs.map((faq) => (
+          <details class="faq">
+            <summary>{locale === "ja" ? faq.question_ja : faq.question_en}</summary>
+            <p>{locale === "ja" ? faq.answer_ja : faq.answer_en}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+    <section class="cta-band">
+      <div>
+        <h2>{copy.ctaLines.map((line) => <span>{line}</span>)}</h2>
+        <p>{copy.ctaBody}</p>
+      </div>
+      <a class="btn btn-accent" href={localePath(locale, "/contact")}>{copy.consult}</a>
+    </section>
+  </div>
+</BaseLayout>

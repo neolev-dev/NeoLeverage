@@ -1,0 +1,68 @@
+---
+import Logo from "../brand/Logo.astro";
+import { localePath, type Locale } from "../../lib/i18n/locale";
+import { t } from "../../lib/i18n/ui";
+import type { SiteSettings } from "../../lib/microcms/types";
+
+interface Props {
+  locale: Locale;
+  settings: SiteSettings;
+}
+
+const { locale, settings } = Astro.props;
+const copy = t(locale);
+const tagline = locale === "ja" ? settings.tagline_ja : "Hoist the sails—the wind is at your back.";
+const links = [
+  [copy.services, "/services"],
+  [copy.weAre, "/we-are"],
+  [copy.trends, "/trends"],
+  [copy.notice, "/notice"],
+  [copy.faq, "/faq"],
+  [copy.editorial, "/editorial-policy"],
+  [copy.contact, "/contact"],
+  [copy.privacy, "/privacy"],
+];
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a class="logo-link" href={localePath(locale, "/")} aria-label="NeoLeverage">
+      <Logo id="footer-logo" tone="on-light" />
+    </a>
+    <p class="footer-tag">{tagline}</p>
+    <div class="footer-grid">
+      <div>
+        <p class="kicker">{copy.offices}</p>
+        {settings.offices.map((office) => (
+          <p>
+            <strong>{locale === "ja" ? office.name : office.name_en}</strong>
+            {office.is_headquarters ? ` (${copy.hq})` : ""}
+            <br />
+            {locale === "ja"
+              ? `〒${office.postal_code} ${office.address_region}${office.address_locality}${office.street_address}`
+              : office.address_en}
+          </p>
+        ))}
+      </div>
+      <div>
+        <p class="kicker">Index</p>
+        {links.slice(0, 4).map(([label, href]) => <a href={localePath(locale, href)}>{label}</a>)}
+      </div>
+      <div>
+        <p class="kicker">More</p>
+        {links.slice(4).map(([label, href]) => <a href={localePath(locale, href)}>{label}</a>)}
+      </div>
+    </div>
+    <div class="legal">
+      <span>{locale === "ja" ? "© 2025 NeoLeverage株式会社" : "© 2025 NeoLeverage Inc."}</span>
+    </div>
+  </div>
+  <div class="footer-mark">
+    <Logo id="footer-wide" tone="on-light" />
+  </div>
+</footer>
+
+<style>
+  .on-light { color: #080808; }
+  .logo-link { text-decoration: none; }
+</style>

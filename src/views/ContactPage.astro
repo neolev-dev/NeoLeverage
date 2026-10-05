@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import ContactForm from "../components/contact/ContactForm.astro";
+import { getContent } from "../lib/microcms/client";
+import { absoluteUrl, localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+import { breadcrumbNode, graph, organizationGraph, pageNode } from "../lib/seo/jsonld";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const content = await getContent();
+const copy = t(locale);
+const ja = locale === "ja";
+const title = ja ? "お問い合わせ｜NeoLeverage株式会社（ネオレバレッジ）" : "Contact | NeoLeverage Inc.";
+const description = ja
+  ? "業務に関するお問い合わせやご相談は、フォームからお送りください。2〜3営業日以内にご連絡します。"
+  : "For inquiries or consultations regarding our services, please use the form. We reply within two to three business days.";
+const path = "/contact";
+const canonical = absoluteUrl(localePath(locale, path));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: copy.contact, href: localePath(locale, path) },
+];
+const topic = Astro.url.searchParams.get("topic") ?? "";
+const jsonLd = graph([
+  ...organizationGraph(content.settings, locale),
+  pageNode({ canonical, locale, type: "ContactPage", name: title, description, breadcrumb: true }),
+  breadcrumbNode(canonical, crumbs),
+]);
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <div class="page">
+    <div class="contact-layout">
+      <div class="mast">
+        <Breadcrumb items={crumbs} />
+        <p class="kicker">Contact</p>
+        <h1>{copy.contact}</h1>
+        <p class="lead">{copy.ctaBody}</p>
+        <p>{ja ? content.settings.quote_policy_ja : content.settings.quote_policy_en}</p>
+      </div>
+      <ContactForm locale={locale} topic={topic} />
+    </div>
+  </div>
+</BaseLayout>

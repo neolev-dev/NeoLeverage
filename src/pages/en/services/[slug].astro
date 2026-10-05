@@ -1,0 +1,12 @@
+---
+import ServiceDetail from "../../../views/ServiceDetail.astro";
+import { getAreas, getServices } from "../../../lib/microcms/client";
+
+export async function getStaticPaths() {
+  const [areas, services] = await Promise.all([getAreas(), getServices()]);
+  return [...areas, ...services].map((item) => ({ params: { slug: item.slug } }));
+}
+
+const { slug } = Astro.params;
+---
+<ServiceDetail locale="en" slug={slug ?? ""} />

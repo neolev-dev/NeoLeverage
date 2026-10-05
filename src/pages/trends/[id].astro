@@ -1,0 +1,12 @@
+---
+import TrendArticle from "../../views/TrendArticle.astro";
+import { getContent } from "../../lib/microcms/client";
+
+export async function getStaticPaths() {
+  const content = await getContent();
+  return content.insights.map((item) => ({ params: { id: item.slug } }));
+}
+
+const { id } = Astro.params;
+---
+<TrendArticle locale="ja" slug={id ?? ""} />

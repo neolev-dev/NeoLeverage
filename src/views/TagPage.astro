@@ -1,0 +1,38 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumb from "../components/layout/Breadcrumb.astro";
+import { getContent } from "../lib/microcms/client";
+import { localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+
+interface Props { locale: Locale; slug: string }
+const { locale, slug } = Astro.props;
+const content = await getContent();
+const tag = content.tags.find((item) => item.slug === slug);
+if (!tag) throw new Error(slug);
+const copy = t(locale);
+const ja = locale === "ja";
+const name = ja ? tag.name_ja : tag.name_en;
+const title = `${name}${ja ? "｜NeoLeverage株式会社" : " | NeoLeverage Inc."}`;
+const description = ja ? `${name}のタグが付いたTrendsの記事です。` : `Trends articles tagged ${name}.`;
+const path = `/trends/tag/${slug}`;
+const items = content.insights.filter((item) => item.tags.includes(slug));
+const crumbs = [
+  { name: copy.home, href: localePath(locale, "/") },
+  { name: "Trends", href: localePath(locale, "/trends") },
+  { name, href: localePath(locale, path) },
+];
+---
+
+<BaseLayout locale={locale} title={title} description={description} path={path} noindex jsonLd={null}>
+  <div class="page">
+    <Breadcrumb items={crumbs} />
+    <h1>{name}</h1>
+    <p class="placeholder-note"><b>{copy.placeholder}</b>{copy.tagNoindex}</p>
+    <ul>
+      {items.map((item) => (
+        <li><a href={localePath(locale, `/trends/${item.slug}`)}>{ja ? item.title_ja : item.title_en}</a></li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

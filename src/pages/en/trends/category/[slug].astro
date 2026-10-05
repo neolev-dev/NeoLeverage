@@ -1,0 +1,12 @@
+---
+import TrendsIndex from "../../../../views/TrendsIndex.astro";
+import { getContent } from "../../../../lib/microcms/client";
+
+export async function getStaticPaths() {
+  const content = await getContent();
+  return content.categories.map((item) => ({ params: { slug: item.slug } }));
+}
+
+const { slug } = Astro.params;
+---
+<TrendsIndex locale="en" category={slug} />

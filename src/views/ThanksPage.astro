@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { localePath, type Locale } from "../lib/i18n/locale";
+import { t } from "../lib/i18n/ui";
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const copy = t(locale);
+const ja = locale === "ja";
+const title = ja ? "送信完了｜NeoLeverage株式会社" : "Message sent | NeoLeverage Inc.";
+const description = ja ? "お問い合わせを受け付けました。" : "We received your message.";
+---
+
+<BaseLayout locale={locale} title={title} description={description} path="/contact/thanks" enPath="/contact/thanks" noindex jsonLd={null}>
+  <div class="page prose">
+    <h1>{copy.thanksTitle}</h1>
+    <p>{copy.thanksBody}</p>
+    <p data-mock hidden>{copy.thanksMock}</p>
+    <p><a href={localePath(locale, "/services")}>{copy.seeServices}</a></p>
+    <p><a href={localePath(locale, "/trends")}>Trends</a></p>
+  </div>
+</BaseLayout>
+
+<script>
+  const note = document.querySelector<HTMLElement>("[data-mock]");
+  if (note && sessionStorage.getItem("nl-contact") === "mock") note.hidden = false;
+</script>
