@@ -65,6 +65,18 @@ vec3 sunDir(){
   return normalize(vec3(sin(az)*cos(uSunEl),sin(uSunEl),cos(az)*cos(uSunEl)));
 }
 float horizonY(){return uHorizon<0.05?.56:uHorizon;}
+float waterRim(vec2 a, vec2 b, vec2 p, float pxS){
+  vec2 ab=b-a;
+  float len2=dot(ab,ab);
+  if(len2<1.) return 0.;
+  float t=clamp(dot(p-a,ab)/len2,0.,1.);
+  vec2 q=a+ab*t;
+  vec2 nrm=vec2(-ab.y,ab.x);
+  if(nrm.y>0.) nrm=-nrm;
+  nrm=normalize(nrm);
+  float sd=dot(p-q,nrm);
+  return smoothstep(-.35*pxS,.15*pxS,sd)*(1.-smoothstep(2.65*pxS,3.15*pxS,sd));
+}
 float persp(float t){
   return t*(6.596093+t*(1.602442+t*(-18.627061+t*(26.167319+t*(-16.165713+t*3.873476)))));
 }
@@ -117,16 +129,18 @@ void main(){
     float yN=clamp((uv.y-h)/max(1.-h,1e-3),0.,1.);
     float vScale=mix(.15,1.,pow(yN,2.2));
     float px=uRes.y/900.;
+    float pxS=uCss.x>1.?uRes.x/uCss.x:1.;
     float Hpx=(1.-h)*uRes.y;
     float yAcc=persp(yN)*Hpx;
     float wakeMask=0.;
     float foamA=0.;
     float aroundA=0.;
+    float rimA=0.;
     if(uWake>0.001 && uStern.y>h && uBow.y>h){
       vec2 sternFrag=vec2(uStern.x*uRes.x,(1.-uStern.y)*uRes.y);
       vec2 bowFrag=vec2(uBow.x*uRes.x,(1.-uBow.y)*uRes.y);
       vec2 travel=bowFrag-sternFrag;
-      float rise=atan(-travel.y, travel.x);
+      float rise=atan(-travel.y, max(travel.x,1.));
       rise=clamp(rise,0.,.104720);
       vec2 aft=vec2(-cos(rise),sin(rise));
       vec2 acr=vec2(-aft.y,aft.x);
@@ -138,58 +152,57 @@ void main(){
       vec2 wlA=vec2(uWl0.x*uRes.x,(1.-uWl0.y)*uRes.y);
       vec2 wlB=vec2(uWl1.x*uRes.x,(1.-uWl1.y)*uRes.y);
       vec2 wlC=vec2(uWl2.x*uRes.x,(1.-uWl2.y)*uRes.y);
-      float a0=dot(wlA-sternFrag,acr);
-      float a1=dot(wlB-sternFrag,acr);
-      float a2=dot(wlC-sternFrag,acr);
-      float l0=dot(wlA-sternFrag,aft);
-      float l1=dot(wlB-sternFrag,aft);
-      float l2=dot(wlC-sternFrag,aft);
-      float edge=l1;
-      float seg=abs(a1-a0);
-      if(acrossPx<=max(a0,a1) && acrossPx>=min(a0,a1) && seg>0.5){
-        edge=mix(l0,l1,clamp((acrossPx-a0)/seg,0.,1.));
-      }else{
-        float seg2=abs(a2-a1);
-        if(seg2>0.5) edge=mix(l1,l2,clamp((acrossPx-a1)/seg2,0.,1.));
+      float edge=dot(wlB-sternFrag,aft)-6.*pxS;
+      float lead=smoothstep(-1.5*pxS,1.5*pxS,alongPx-edge);
+      float depthCss=(uv.y-h)*(uCss.y>1.?uCss.y:uRes.y);
+      float offHor=smoothstep(60.,74.,depthCss);
+      float fade=lead*offHor*(1.-smoothstep(reach-.02,reach,alongVw));
+      if(alongVw>-0.03 && alongVw<reach && fade>0.001){
+        float dist=abs(acrossPx);
+        if(alongVw<=.12){
+          float u=clamp(alongVw/.12,0.,1.);
+          float bandW=mix(7.,4.5,u)*pxS;
+          float inner=max(bandW-2.2*pxS,0.);
+          float solid=1.-smoothstep(inner,inner+.8*pxS,dist);
+          float edgeBand=smoothstep(inner-.4*pxS,inner+.2*pxS,dist)*(1.-smoothstep(bandW-.2*pxS,bandW+.6*pxS,dist));
+          float n=noise(vec2(alongPx/(6.*pxS)-uTime*.35, acrossPx/(3.*pxS)));
+          float broken=smoothstep(.42,.62,n);
+          foamA=max(solid, edgeBand*broken)*.95*fade;
+          aroundA=smoothstep(bandW,bandW+2.2*pxS,dist)*(1.-smoothstep(bandW+2.2*pxS,bandW+3.4*pxS,dist))*fade*.65;
+          wakeMask=max(solid, edgeBand);
+        }else{
+          float pu=clamp((alongVw-.12)/.23,0.,1.);
+          float spacing=mix(16.,5.,pu)*pxS;
+          float corridor=mix(5.,1.6,pu)*pxS;
+          vec2 gv=vec2(acrossPx, alongPx-uTime*16.*pxS)/max(spacing,1.);
+          vec2 id=floor(gv);
+          vec2 f=fract(gv);
+          float puff=0.;
+          for(int iy=-1;iy<=1;iy++){
+            for(int ix=-1;ix<=1;ix++){
+              vec2 g=vec2(float(ix),float(iy));
+              vec2 o=vec2(hash(id+g),hash(id+g+19.1));
+              float rad=mix(2.,4.,hash(id+g+3.7))*mix(1.,.25,pu)*pxS;
+              float soft=clamp(.75*pxS,.5*pxS,1.*pxS);
+              float distP=length(g+o-f)*spacing;
+              float cAcross=abs(acrossPx+(g.x+o.x-f.x)*spacing);
+              float keep=step(cAcross,corridor);
+              puff=max(puff,keep*(1.-smoothstep(max(rad-soft,0.),rad,distP)));
+            }
+          }
+          foamA=puff*.95*fade;
+          wakeMask=foamA;
+        }
       }
-      edge-=6.;
-      float lead=smoothstep(-1.5,1.5,alongPx-edge);
-      float spanLo=min(min(a0,a1),a2);
-      float spanHi=max(max(a0,a1),a2);
-      float past=max(spanLo-acrossPx, acrossPx-spanHi);
-      float inStern=1.-smoothstep(0.,3.,past);
-      lead*=mix(inStern,1.,smoothstep(0.,16.,alongPx-edge));
-      float depthPx=(uv.y-h)*uRes.y;
-      float offHor=smoothstep(12.,28.,depthPx);
-      if(alongVw>-0.02 && alongVw<reach){
-        float alongT=clamp(alongVw/max(reach,1e-3),0.,1.);
-        float pxS=uCss.x>1.?uRes.x/uCss.x:1.;
-        float grain=mix(8.,2.5,alongT)*pxS;
-        float armW=mix(8.,2.6,alongT)*pxS;
-        float centreW=mix(11.,3.2,alongT)*pxS;
-        float sternHalf=max(uBeam,.008)*uRes.x;
-        float armLine=sternHalf+max(alongPx,0.)*.16;
-        float dArm=min(abs(acrossPx-armLine),abs(acrossPx+armLine));
-        float arms=1.-smoothstep(max(armW-pxS,0.),armW,dArm);
-        float centre=1.-smoothstep(max(centreW-pxS,0.),centreW,abs(acrossPx));
-        float gate=max(arms,centre*.45);
-        wakeMask=max(arms,centre);
-        vec2 adv=vec2(acrossPx,alongPx-uTime*30.*pxS);
-        float n1=noise(adv/max(grain,1.));
-        float n2=noise(adv/max(grain*.58,1.)+4.7);
-        float n=n1*.62+n2*.38;
-        float speck=smoothstep(.55,.55+pxS/max(grain,1.),n);
-        float fade=(1.-alongT)*lead*offHor;
-        foamA=gate*speck*.95*fade;
-        aroundA=wakeMask*fade*(1.-speck);
-      }
+      rimA=max(waterRim(wlA,wlB,frag,pxS), waterRim(wlB,wlC,frag,pxS))*.9*offHor;
+      wakeMask=max(wakeMask, rimA);
     }
-    float shiftPx=0.;
+    float warpX=0.;
     if(uCss.x>1. && abs(uMouse)>0.001){
       float below=(uv.y-h)*uCss.y;
-      float band=smoothstep(40.,58.,below);
+      float depthGate=smoothstep(40.,58.,below);
       vec2 cDel=(uv-uCursor)*uCss;
-      float local=(1.-smoothstep(120.,180.,length(cDel)))*band;
+      float reach180=(1.-smoothstep(120.,180.,length(cDel)))*depthGate;
       float left=uShip.x-uShip.z*.5;
       float right=uShip.x+uShip.z*.5;
       float top=uShip.y;
@@ -197,10 +210,12 @@ void main(){
       float hullM=step(left,uv.x)*step(uv.x,right)*step(top+uShip.w*.5,uv.y)*step(uv.y,bot+.03);
       float reflM=step(left,uv.x)*step(uv.x,right)*step(bot-.02,uv.y)*step(uv.y,bot+uShip.w*.34);
       float onWake=smoothstep(.05,.35,wakeMask);
-      local*=(1.-hullM)*(1.-reflM)*(1.-onWake);
-      shiftPx=uMouse*uRes.x*.004*local;
+      reach180*=(1.-hullM)*(1.-reflM)*(1.-onWake);
+      vec2 fromC=cDel;
+      float cLen=max(length(fromC),1e-3);
+      warpX=fromC.x/cLen*6.*pxS*abs(uMouse)*reach180;
     }
-    float sx=frag.x-shiftPx;
+    float sx=frag.x;
     float oct=uOct<.5?4.:uOct;
     float warp=noise(vec2(sx/(150.*px)+uTime*.015,yAcc/(130.*px)))-.5;
     float warp2=noise(vec2(sx/(70.*px)+4.2,yAcc/(64.*px)+1.7))-.5;
@@ -218,7 +233,8 @@ void main(){
       float wl=L/max(freq,.001);
       float vis=smoothstep(7.*px,16.*px,wl)*alive;
       float amp=amp0*px*vScale*vis;
-      float along=D.x*(sx+warp*40.*px)+D.y*(yAcc+warp2*28.*px);
+      float sampleX=frag.x-warpX;
+      float along=D.x*(sampleX+warp*40.*px)+D.y*(yAcc+warp2*28.*px);
       float ph=k*along-uTime*(.22+.07*fi)*max(uWind,.2);
       float s=sin(ph),c=cos(ph);
       wave+=amp*s;
@@ -248,7 +264,7 @@ void main(){
     vec3 V=normalize(-rd);
     float ndv=clamp(dot(n,V),0.,1.);
     float fres=.02+.98*pow(1.-ndv,5.);
-    vec3 refl=skyColor(vec2(uv.x-shiftPx/max(uRes.x,1.),uv.y));
+    vec3 refl=skyColor(uv);
     float sunShift=uCss.x>1.?uMouse*24.*uRes.x/uCss.x:0.;
     float sunU=(uSunX<0.05?.86:uSunX)+sunShift/max(uRes.x,1.);
     float halfW=mix(.018,.095,pow(yN,1.15));
@@ -272,6 +288,7 @@ void main(){
       col=mix(col,mix(col*1.06,emerald,.5),clamp(aroundA,0.,1.));
     }
     if(foamA>0.001) col=mix(col,vec3(1.),clamp(foamA,0.,1.));
+    if(rimA>0.001) col=mix(col,vec3(1.),clamp(rimA,0.,1.));
     float belowPx=(uv.y-h)*uRes.y;
     float hazeW=24.*px;
     vec3 hazeC=vec3(232.,244.,252.)/255.;
