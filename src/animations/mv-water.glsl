@@ -70,12 +70,9 @@ float waterRim(vec2 a, vec2 b, vec2 p, float pxS){
   float len2=dot(ab,ab);
   if(len2<1.) return 0.;
   float t=clamp(dot(p-a,ab)/len2,0.,1.);
-  vec2 q=a+ab*t;
-  vec2 nrm=vec2(-ab.y,ab.x);
-  if(nrm.y>0.) nrm=-nrm;
-  nrm=normalize(nrm);
-  float sd=dot(p-q,nrm);
-  return smoothstep(-.35*pxS,.15*pxS,sd)*(1.-smoothstep(2.65*pxS,3.15*pxS,sd));
+  vec2 q=a+ab*t+vec2(0.,-4.*pxS);
+  float eucl=length(p-q);
+  return 1.-smoothstep(1.35*pxS,1.75*pxS,eucl);
 }
 float persp(float t){
   return t*(6.596093+t*(1.602442+t*(-18.627061+t*(26.167319+t*(-16.165713+t*3.873476)))));
@@ -141,7 +138,7 @@ void main(){
       vec2 bowFrag=vec2(uBow.x*uRes.x,(1.-uBow.y)*uRes.y);
       vec2 travel=bowFrag-sternFrag;
       float rise=atan(-travel.y, max(travel.x,1.));
-      rise=clamp(rise,0.,.104720);
+      rise=clamp(rise,0.,.087266);
       vec2 aft=vec2(-cos(rise),sin(rise));
       vec2 acr=vec2(-aft.y,aft.x);
       vec2 dlt=frag-sternFrag;
@@ -161,7 +158,7 @@ void main(){
         float dist=abs(acrossPx);
         if(alongVw<=.12){
           float u=clamp(alongVw/.12,0.,1.);
-          float bandW=mix(7.,4.5,u)*pxS;
+          float bandW=mix(8.,5.,u)*pxS;
           float inner=max(bandW-2.2*pxS,0.);
           float solid=1.-smoothstep(inner,inner+.8*pxS,dist);
           float edgeBand=smoothstep(inner-.4*pxS,inner+.2*pxS,dist)*(1.-smoothstep(bandW-.2*pxS,bandW+.6*pxS,dist));
@@ -182,7 +179,7 @@ void main(){
             for(int ix=-1;ix<=1;ix++){
               vec2 g=vec2(float(ix),float(iy));
               vec2 o=vec2(hash(id+g),hash(id+g+19.1));
-              float rad=mix(2.,4.,hash(id+g+3.7))*mix(1.,.25,pu)*pxS;
+              float rad=max(1.15*pxS, mix(2.,4.,hash(id+g+3.7))*mix(1.,.32,pu)*pxS);
               float soft=clamp(.75*pxS,.5*pxS,1.*pxS);
               float distP=length(g+o-f)*spacing;
               float cAcross=abs(acrossPx+(g.x+o.x-f.x)*spacing);
